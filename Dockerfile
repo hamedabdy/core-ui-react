@@ -10,26 +10,27 @@ ENV ESLINT_CACHE_DIR=/tmp/.eslintcache
 RUN apk add --no-cache bash git
 
 # Create non-root user 'app'
-RUN addgroup app && adduser -S -G app app
+# RUN addgroup app && adduser -S -G app app
 
 # Set the working directory to /app
 WORKDIR /app
 
 # Copy package.json and package-lock.json first
-COPY ./package*.json ./
+COPY --chown=node:node ./package*.json ./
+
+# Ensure app directory is owned by the non-root user
+RUN chown -R node:node /app
+
+# Switch to non-root user to install dependencies
+USER node
 
 # Install dependencies
 RUN npm install
 
 # Copy the rest of the application code
-COPY . ./
+COPY --chown=node:node . ./
 
-# Ensure app directory is owned by the non-root user
-RUN chown -R app:app /app
-
-# Switch to non-root user to install dependencies
-USER app
-
+# Expose the application port (for documentation purposes)
 EXPOSE 3001
 
 FROM base AS development
@@ -37,4 +38,4 @@ FROM base AS development
 CMD ["npm", "start"]
 
 FROM base AS production
-CMD ["npm", "run", "build", "&&", "serve", "-s", "build"]
+CMD ["sh", "-c", "start:prod"]
