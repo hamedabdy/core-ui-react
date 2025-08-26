@@ -1,7 +1,8 @@
 // services/ApiService.js
 import axios from "axios";
 
-const tableApiUrl = "http://localhost:3001/api/table";
+
+const tableApiUrl = process.env.REACT_APP_PROTOCOL + process.env.REACT_APP_HOST + ":" + process.env.REACT_APP_PORT + process.env.REACT_APP_API_URI;
 
 const ApiService = {
   getTables: async () => {
