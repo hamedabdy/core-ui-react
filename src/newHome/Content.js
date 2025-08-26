@@ -14,7 +14,7 @@ import { Box } from "@mui/material";
 export default function Content({ drawerWidth }) {
   return (
     <Box
-      sx={{maxWidth: `calc(100dvw - ${drawerWidth}px - 16px)`}} // temp solution to avoid horizontal scroll
+      sx={{maxWidth: `calc(100dvw - ${drawerWidth}px)`}} // temp solution to avoid horizontal scroll
     >
       <AppBar
         position="static"
