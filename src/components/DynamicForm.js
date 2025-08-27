@@ -25,7 +25,7 @@ import EnhancedCheckBox from "./dynamicForm/EnhancedCheckboxes";
 
 const DynamicForm = () => {
   const navigate = useNavigate();
-  const { tableName } = useParams();
+  const {tableName} = useParams();
   const [searchParams] = useSearchParams();
   const [sysID, setSysID] = useState(searchParams.get("sys_id"));
   const [columns, setColumns] = useState([]);
@@ -113,18 +113,15 @@ const DynamicForm = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const tableNameExists = await checkTableNameExists(formData.name);
-      if (tableNameExists) {
-        setErrorMessage(`Table with name "${formData.name}" already exists.`);
-        return;
-      }
-      // Send a request to your API to insert a new row
+      // Directly send a request to your API to insert a new row or column
       const response = await ApiService.addData(tableName, formData);
       if (response.status === "success") {
         setSysID(response.sys_id);
         navigate(`?sys_id=${response.sys_id}`);
         // After saving the form, update the state to trigger a re-render
         setReloadData(true);
+      } else {
+        setErrorMessage(response.message || "Error inserting row.");
       }
     } catch (error) {
       console.error("Error inserting row:", error);
@@ -144,7 +141,6 @@ const DynamicForm = () => {
         "";
 
     setFormData(fd);
-
     handleSubmit(event);
   };
 
@@ -153,13 +149,16 @@ const DynamicForm = () => {
     try {
       const response = await ApiService.deleteData(tableName, formData);
       if (response.status === "success") {
-        navigate(-1);
-        // After saving the form, update the state to trigger a re-render
-        setReloadData(true);
+        
+          // No history, redirect to the list view of the same table
+          navigate(`../${tableName}.list`);
+        
+      } else {
+        setErrorMessage(response.message || "Failed to delete record");
       }
     } catch (error) {
       console.error("Error deleting row:", error);
-      setErrorMessage("Error deleting row:", error);
+      setErrorMessage(error.response?.data?.message || "Error deleting record: " + error.message);
     }
   };
 
@@ -185,11 +184,17 @@ const DynamicForm = () => {
             padding: 2,
             marginBottom: 2,
             marginTop: 2,
-            bgcolor: "error.main",
+            bgcolor: errorMessage.includes("success") ? "success.main" : "error.main",
             color: "error.contrastText",
+            marginleft: "10%",
+            marginRight: "10%",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            transition: "all 0.3s ease-in-out",
           }}
         >
-          <Typography color="#333" variant="body1">
+          <Typography color="#fff" variant="body1">
             {errorMessage}
           </Typography>
         </Paper>

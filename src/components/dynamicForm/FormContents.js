@@ -1,4 +1,3 @@
-import React from "react";
 import { Grid, Typography, FormControl, TextField } from "@mui/material";
 
 const FormContents = ({ c, formData, handleInputChange, error, setError }) => {
