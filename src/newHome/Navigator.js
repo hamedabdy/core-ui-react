@@ -7,54 +7,17 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import HomeIcon from "@mui/icons-material/Home";
-import PeopleIcon from "@mui/icons-material/People";
-import DnsRoundedIcon from "@mui/icons-material/DnsRounded";
-import PermMediaOutlinedIcon from "@mui/icons-material/PhotoSizeSelectActual";
-import PublicIcon from "@mui/icons-material/Public";
-import SettingsEthernetIcon from "@mui/icons-material/SettingsEthernet";
-import SettingsInputComponentIcon from "@mui/icons-material/SettingsInputComponent";
-import TimerIcon from "@mui/icons-material/Timer";
-import SettingsIcon from "@mui/icons-material/Settings";
-import PhonelinkSetupIcon from "@mui/icons-material/PhonelinkSetup";
+
 import IconButton from "@mui/material/IconButton";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PushPinIcon from "@mui/icons-material/PushPin";
-
-const categories = [
-  {
-    id: "Build",
-    children: [
-      {
-        id: "Authentication",
-        icon: <PeopleIcon />,
-        active: true,
-      },
-      { id: "Database", icon: <DnsRoundedIcon /> },
-      { id: "Storage", icon: <PermMediaOutlinedIcon /> },
-      { id: "Hosting", icon: <PublicIcon /> },
-      { id: "Functions", icon: <SettingsEthernetIcon /> },
-      {
-        id: "Machine learning",
-        icon: <SettingsInputComponentIcon />,
-      },
-    ],
-  },
-  {
-    id: "Quality",
-    children: [
-      { id: "Analytics", icon: <SettingsIcon /> },
-      { id: "Performance", icon: <TimerIcon /> },
-      { id: "Test Lab", icon: <PhonelinkSetupIcon /> },
-    ],
-  },
-];
+import ApiService from "../services/ApiService";
 
 const item = {
-  py: "2px",
-  px: 3,
+  py: 0,
+  px: 2,
   color: "rgba(255, 255, 255, 0.7)",
   "&:hover, &:focus": {
     bgcolor: "rgba(255, 255, 255, 0.08)",
@@ -63,13 +26,95 @@ const item = {
 
 const itemCategory = {
   boxShadow: "0 -1px 0 rgb(255,255,255,0.1) inset",
-  py: 1.5,
-  px: 3,
+  py: 0.5,
+  px: 1,
 };
 
 export default function Navigator(props) {
   const { pinned = false, onPinToggle, onRefresh, onSearch, ...other } = props;
   const [searchValue, setSearchValue] = React.useState("");
+  const [categories, setCategories] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+
+  const loadApplicationsAndModules = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get all applications
+      const { data: applications } = await ApiService.getData({ 
+        table_name: 'sys_app_application'
+      });
+      
+      // Get all modules
+      const { data: modules } = await ApiService.getData({ 
+        table_name: 'sys_app_module'
+      });
+
+      // Create a map of applications
+      const appMap = new Map();
+      applications.forEach(app => {
+        appMap.set(app.sys_id, {
+          id: app.title || app.name,
+          sys_id: app.sys_id,
+          children: []
+        });
+      });
+
+      // Add a category for modules without application
+      appMap.set('uncategorized', {
+        id: 'Other Modules',
+        sys_id: 'uncategorized',
+        children: []
+      });
+
+      // Process only active modules
+      modules.forEach(module => {
+        // Skip inactive modules
+        if (!module.active) return;
+
+        const moduleData = {
+          id: module.title || module.name,
+          sys_id: module.sys_id,
+          link: module.link_type === 'list_of_records' ? 
+                `./${module.name}.list` : 
+                (module.link ? `/${module.link}` : '#')
+        };
+
+        // Add module to its application category or to uncategorized
+        const appId = module.sys_app_application || 'uncategorized';
+        const category = appMap.get(appId);
+        if (category) {
+          category.children.push(moduleData);
+        } else {
+          appMap.get('uncategorized').children.push(moduleData);
+        }
+      });
+
+      // Convert map to array and filter out empty categories
+      const categoriesData = Array.from(appMap.values())
+        .filter(category => category.children.length > 0);
+
+      setCategories(categoriesData);
+    } catch (err) {
+      console.error('Error loading navigation:', err);
+      setError('Failed to load navigation menu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load data when component mounts
+  React.useEffect(() => {
+    loadApplicationsAndModules();
+  }, []);
+
+  // Refresh handler now reloads the data
+  const handleRefresh = () => {
+    loadApplicationsAndModules();
+    if (onRefresh) onRefresh();
+  };
 
   const handleSearchChange = (e) => {
     setSearchValue(e.target.value);
@@ -121,9 +166,10 @@ export default function Navigator(props) {
             />
             <IconButton
               aria-label="refresh"
-              onClick={onRefresh}
+              onClick={handleRefresh}
               size="small"
               sx={{ color: "#fff", ml: 0.5 }}
+              disabled={loading}
             >
               <RefreshIcon />
             </IconButton>
@@ -138,20 +184,34 @@ export default function Navigator(props) {
           </Box>
         </ListItem>
         <ListItem sx={{ ...item, ...itemCategory }}>
-          <ListItemIcon>
-            <HomeIcon />
-          </ListItemIcon>
-          <ListItemText>Project Overview</ListItemText>
         </ListItem>
-        {categories.map(({ id, children }) => (
+        {loading ? (
+          <ListItem sx={{ ...item, ...itemCategory }}>
+            <ListItemText>Loading...</ListItemText>
+          </ListItem>
+        ) : error ? (
+          <ListItem sx={{ ...item, ...itemCategory }}>
+            <ListItemText sx={{ color: 'error.main' }}>{error}</ListItemText>
+          </ListItem>
+        ) : categories.map(({ id, children }) => (
           <Box key={id} sx={{ bgcolor: "#101F33" }}>
-            <ListItem sx={{ py: 2, px: 3 }}>
+            <ListItem sx={{ py: 0, px: 1 }}>
               <ListItemText sx={{ color: "#fff" }}>{id}</ListItemText>
             </ListItem>
-            {children.map(({ id: childId, icon, active }) => (
+            {children.map(({ id: childId, active, link }) => (
               <ListItem disablePadding key={childId}>
-                <ListItemButton selected={active} sx={item}>
-                  <ListItemIcon>{icon}</ListItemIcon>
+                <ListItemButton
+                  selected={active}
+                  sx={item}
+                  component="a"
+                  href={link}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (link && link !== '#') {
+                      window.location.href = link;
+                    }
+                  }}
+                >
                   <ListItemText>{childId}</ListItemText>
                 </ListItemButton>
               </ListItem>
