@@ -1,5 +1,4 @@
 import PropTypes from "prop-types"; // data type checking
-import React from "react";
 
 // Styles
 import Box from "@mui/material/Box";

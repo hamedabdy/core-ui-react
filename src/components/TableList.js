@@ -1,12 +1,11 @@
 // components/TableList.js
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ApiService from "../services/ApiService";
 import {
   List,
   ListItemText,
   ListSubheader,
   ListItemButton,
-  Box,
 } from "@mui/material";
 
 const TableList = ({ onTableSelect }) => {

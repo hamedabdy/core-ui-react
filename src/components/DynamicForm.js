@@ -1,4 +1,4 @@
-import React, {
+import {
   useState,
   useEffect,
   // useRef,
@@ -15,7 +15,7 @@ import ApiService from "../services/ApiService";
 // import LinearProgress from "@mui/material/LinearProgress";
 
 // import { styled } from "@mui/system";
-import { Paper, Typography, Grid, Box, CircularProgress } from "@mui/material";
+import { Paper, Typography, Grid, Box } from "@mui/material";
 
 // Import Local Components
 import PageHeader from "./dynamicForm/PageHeader";
@@ -98,17 +98,17 @@ const DynamicForm = () => {
     }));
   };
 
-  const checkTableNameExists = async (name) => {
-    try {
-      const response = await ApiService.getTable(name);
-      if (response.status === "success" && response.data != null) return true;
-      return false;
-    } catch (error) {
-      console.error("Error checking table name:", error);
-      setErrorMessage("Error checking table name:", error);
-      return false;
-    }
-  };
+  // const checkTableNameExists = async (name) => {
+  //   try {
+  //     const response = await ApiService.getTable(name);
+  //     if (response.status === "success" && response.data != null) return true;
+  //     return false;
+  //   } catch (error) {
+  //     console.error("Error checking table name:", error);
+  //     setErrorMessage("Error checking table name:", error);
+  //     return false;
+  //   }
+  // };
 
   const handleSubmit = async (event) => {
     event.preventDefault();

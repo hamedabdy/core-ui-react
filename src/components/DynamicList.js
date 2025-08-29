@@ -11,13 +11,13 @@ import Table from "@mui/material/Table";
 import Paper from "@mui/material/Paper";
 // import CircularProgress from "@mui/material/CircularProgress";
 import TablePagination from "@mui/material/TablePagination";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Switch from "@mui/material/Switch";
+// import FormControlLabel from "@mui/material/FormControlLabel";
+// import Switch from "@mui/material/Switch";
 
 // IMPORT LOCAL COMPONENTS
 import EnhancedToolbar from "./dynamicList/EnhancedToolbar";
 import QueryFilter from "./dynamicList/QueryFilter";
-import EnhancedTableHead from "./dynamicList/EnhanceTableHead";
+import EnhancedTableHead from "./dynamicList/EnhancedTableHead";
 import EnhancedTableBody from "./dynamicList/EnhancedTableBody";
 import TablePaginationActions from "./dynamicList/EnhancedTablePagination";
 import Utils from "./dynamicList/Utils";
@@ -26,10 +26,7 @@ const DynamicList = () => {
   const { tableName } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [sysparmQuery, setsysparmQuery] = useState(
-    searchParams.get("sysparm_query")
-  );
-  // Add sysparm_fields state
+  const [sysparmQuery, setSysparmQuery] = useState(searchParams.get("sysparm_query"));
   const [sysparmFields, setSysparmFields] = useState(searchParams.get("sysparm_fields") || "");
   const [columns, setColumns] = useState([]);
   const [data, setData] = useState([]);
@@ -38,12 +35,35 @@ const DynamicList = () => {
   const [orderBy, setOrderBy] = useState("sys_updated_on");
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
-  const [dense, setDense] = useState(true);
   const [rowsPerPage, setRowsPerPage] = useState(100);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const getData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const cols = await ApiService.getColumns(tableName);
+        setColumns(cols.data.rows);
+        // Always fetch data with sysparm_fields if present
+        const resp = await ApiService.getData({
+          table_name: tableName,
+          sysparm_query: sysparmQuery,
+          sysparm_fields: sysparmFields
+        });
+        setData(resp.data);
+        const table = await ApiService.getTable(tableName);
+        setTable(table.data);
+      } catch (error) {
+        setError(`Error loading data: ${error.message}`);
+        console.log("Error in DynamicList: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
   // Add state for visible columns (elements)
   const [visibleColumnElements, setVisibleColumnElements] = useState([]);
-
   // When columns are loaded, set all as visible by default or from sysparm_fields
   useEffect(() => {
     if (columns && columns.length > 0) {
@@ -57,26 +77,14 @@ const DynamicList = () => {
 
   // Fetch columns and data from server, using sysparm_fields if present
   useEffect(() => {
-    const getData = async () => {
-      try {
-        const cols = await ApiService.getColumns(tableName);
-        setColumns(cols.data.rows);
-        // Always fetch data with sysparm_fields if present
-        const resp = await ApiService.getData({
-          table_name: tableName,
-          sysparm_query: sysparmQuery,
-          sysparm_fields: sysparmFields
-        });
-        setData(resp.data);
-        const table = await ApiService.getTable(tableName);
-        setTable(table.data);
-      } catch (error) {
-        console.log("Error in DynamicList: ", error);
-      }
-    };
     getData();
     // eslint-disable-next-line
   }, [tableName, sysparmQuery, sysparmFields]);
+
+  const handleFilterChange = (query) => {
+    setSysparmQuery(query);
+    getData();
+  };
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -119,10 +127,6 @@ const DynamicList = () => {
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
-  };
-
-  const handleChangeDense = (event) => {
-    setDense(event.target.checked);
   };
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
@@ -175,6 +179,7 @@ const DynamicList = () => {
           tableName={tableName}
           table={table}
           onColumnsChange={handleColumnsChange}
+          onFilterChange={handleFilterChange}
         />
         <QueryFilter tableName={tableName} setData={setData} />
         <TableContainer
@@ -183,19 +188,15 @@ const DynamicList = () => {
           sx={{ overflow: "auto" }}
         >
           <Table
-            stickyHeader
-            aria-label="sticky table"
+            size="small"
             sx={{
               minWidth: 750,
-              ...(dense && {
                 "& th, & td": {
                   padding: "2px 8px",
                   fontSize: "0.80rem",
                   lineHeight: 1.2,
                 },
-              }),
             }}
-            size={!dense ? "small" : ""}
           >
             <EnhancedTableHead
               columns={filteredColumns}
@@ -206,6 +207,7 @@ const DynamicList = () => {
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
               rowCount={filteredColumns.length}
+              onFilterChange={handleFilterChange}
             />
             <EnhancedTableBody
               columns={filteredColumns}
@@ -215,7 +217,6 @@ const DynamicList = () => {
                 handleClick(event, id);
               }}
               emptyRows={emptyRows}
-              dense={dense}
               tableName={tableName}
             />
           </Table>
@@ -231,10 +232,6 @@ const DynamicList = () => {
           ActionsComponent={TablePaginationActions}
         />
       </Paper>
-      <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label="Dense padding"
-      />
     </Box>
   );
 };
