@@ -1,21 +1,26 @@
 # Changelog
 
-All notable changes to the core-ui-react project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
-### Fixed
-- Fixed form submission issue with non-mandatory fields:
-  - Added strict equality check for mandatory field validation
+### Added
+- **SimpleList Component**: A new component for displaying simplified table data.
+- **SimpleListToolbar**: Toolbar for the SimpleList component.
+- **SimpleListHead**: Table header for the SimpleList component.
+- **SimpleTableBody**: Table body for the SimpleList component.
+
+### Changed
+- Replaced `EnhancedTableBody` with `SimpleTableBody` in `SimpleList.js` to simplify the table body and remove unnecessary complexity.
   - Improved handling of required attribute in form fields
   - Centralized mandatory field logic
   - Fixed browser's native form validation for optional fields
   - Ensured consistent behavior across all field types
 
 ### Added
+- Added new SimpleTableBody component, a lightweight version of EnhancedTableBody for use in popups:
+  - Created SimpleTableBody.js, removing the checkbox and info icon from rows
+- Added new SimpleListHead component, a lightweight version of EnhancedTableHead for use in popups:
+  - Created SimpleListHead.js with only column names and sorting functionality
+  - Removed checkbox, search icon, and filtering for a simpler UI
 - Added new ReferenceField component for handling reference type fields:
   - Created dedicated ReferenceField.js component
   - Added lookup dialog with DynamicList integration
@@ -36,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Enhanced refresh functionality to reload menu data
 
 ### Changed
+- Updated SimpleList component to use SimpleListHead and SimpleListToolbar:
+  - Replaced EnhancedTableHead with SimpleListHead for a lighter header
+  - Replaced EnhancedToolbar with SimpleListToolbar for a simplified toolbar
 - Enhanced delete functionality in DynamicForm component:
   - Added smart navigation after record deletion:
     - Returns to previous page if there's navigation history

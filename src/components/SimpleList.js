@@ -12,9 +12,9 @@ import TablePagination from '@mui/material/TablePagination';
 // import Switch from '@mui/material/Switch';
 
 // Local components
-import EnhancedTableHead from './dynamicList/EnhancedTableHead';
-import EnhancedTableBody from './dynamicList/EnhancedTableBody';
-import EnhancedToolbar from './dynamicList/EnhancedToolbar';
+import SimpleListHead from './simpleList/SimpleListHead';
+import SimpleTableBody from './simpleList/SimpleTableBody';
+import SimpleListToolbar from './simpleList/SimpleListToolbar';
 import TablePaginationActions from './dynamicList/EnhancedTablePagination';
 import QueryFilter from "./dynamicList/QueryFilter";
 
@@ -107,34 +107,6 @@ function SimpleList({ tableName }) {
     setOrderBy(property);
   };
 
-  const handleSelectAllClick = (event) => {
-    if (event.target.checked) {
-      const newSelected = data.map((n) => n.id);
-      setSelected(newSelected);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event, id) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
-    }
-    setSelected(newSelected);
-  };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -143,8 +115,6 @@ function SimpleList({ tableName }) {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-
-  const isSelected = (id) => selected.indexOf(id) !== -1;
 
   if (!tableName) return <div>No table selected.</div>;
   if (loading) return <div>Loading...</div>;
@@ -157,13 +127,8 @@ function SimpleList({ tableName }) {
   return (
     <Box sx={{ width: '100%' }}>
       <Paper sx={{ width: '100%', mb: 2 }}>
-        <EnhancedToolbar 
-          columns={columns}
-          numSelected={selected.length}
-          tableName={tableName}
+        <SimpleListToolbar 
           table={table}
-          onColumnsChange={handleColumnsChange}
-          onFilterChange={handleFilterChange}
         />
         <QueryFilter tableName={tableName} setData={setData} />
         <TableContainer>
@@ -174,24 +139,15 @@ function SimpleList({ tableName }) {
                   lineHeight: 1.2,
                 },
               }), }} size="small">
-            <EnhancedTableHead
+            <SimpleListHead
               columns={columns}
-              table={table}
-              visibleRows={visibleRows}
-              numSelected={selected.length}
               order={order}
               orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={columns.length}
-              onFilterChange={handleFilterChange}
             />
-            <EnhancedTableBody
+            <SimpleTableBody
               columns={columns}
-              table={table}
               visibleRows={visibleRows}
-              isSelected={isSelected}
-              handleClick={handleClick}
               emptyRows={emptyRows}
               tableName={tableName}
             />

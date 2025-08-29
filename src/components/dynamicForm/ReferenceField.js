@@ -4,9 +4,9 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
+// import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-import DynamicList from '../DynamicList';
+// import DynamicList from '../DynamicList';
 import { styled } from '@mui/material/styles';
 import SimpleList from '../SimpleList';
 
