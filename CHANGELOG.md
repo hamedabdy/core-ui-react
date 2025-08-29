@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fixed form submission issue with non-mandatory fields:
+  - Added strict equality check for mandatory field validation
+  - Improved handling of required attribute in form fields
+  - Centralized mandatory field logic
+  - Fixed browser's native form validation for optional fields
+  - Ensured consistent behavior across all field types
+
+### Added
+- Added new ReferenceField component for handling reference type fields:
+  - Created dedicated ReferenceField.js component
+  - Added lookup dialog with DynamicList integration
+  - Implemented search functionality with magnifying glass icon
+  - Added proper data attributes for reference tracking
+  - Enhanced form handling for reference values
+  - Improved user experience with proper dialog sizing
+
 ### Added
 - Enhanced Navigator component with dynamic menu loading:
   - Integrated with sys_app_application and sys_app_module tables using existing getData API
