@@ -95,7 +95,6 @@ const EnhancedTableBody = (props) => {
     isSelected,
     handleClick,
     emptyRows,
-    dense,
   } = props;
 
   return (
@@ -161,10 +160,7 @@ const EnhancedTableBody = (props) => {
       })}
       {emptyRows > 0 && (
         <TableRow
-          style={{
-            height: (dense ? 33 : 53) * emptyRows,
-          }}
-        >
+          style={{height: 33 * emptyRows,}}>
           <TableCell colSpan={6} />
         </TableRow>
       )}
@@ -178,7 +174,6 @@ EnhancedTableBody.propTypes = {
   isSelected: PropTypes.func.isRequired,
   handleClick: PropTypes.func.isRequired,
   emptyRows: PropTypes.number.isRequired,
-  dense: PropTypes.bool.isRequired,
   tableName: PropTypes.string.isRequired,
 };
 
