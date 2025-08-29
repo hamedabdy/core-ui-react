@@ -27,10 +27,9 @@ import {
 } from "@mui/material";
 
 const EnhancedToolbar = (props) => {
-  const { numSelected, tableName, table, columns } = props;
-
+  const { numSelected, tableName, table, columns, onFilterChange } = props;
   const [toolbarSearchValue, settoolbarSearchValue] = useState("");
-  const [toolbarSearchField, setToolbarSearchField] = useState("name");
+  const [toolbarSearchField, setToolbarSearchField] = useState(columns && columns.length > 0 ? columns[0].element : "name");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState(
     columns ? columns.map(col => col.element) : (table?.visibleColumns || [])
@@ -44,49 +43,32 @@ const EnhancedToolbar = (props) => {
     setDialogOpen(false);
   };
 
-  function ToolbarSearch() {
-    return (
-      <Box sx={{ marginLeft: 1, width: "100%"}}>
-        <FormControl sx={{ minWidth: 120 }}>
-          <InputLabel id="toolbar-search-select-autowidth-label">
-            Search
-          </InputLabel>
-          <Select
-            labelId="toolbar-search-select-autowidth-label"
-            id="toolbar-search-select-autowidth"
-            value={toolbarSearchField}
-            // onChange={handleChange}
-            autoWidth
-            label="Search"
-            size="small"
-            variant="outlined"
-            name="toolbar-search-select-autowidth"
-          >
-            <MenuItem value="">
-              <em>None</em>
-            </MenuItem>
-            <MenuItem value={"name"}>Name</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl>
-          <TextField
-            label="Search"
-            sx={{ width: 250 }}
-            id="toolbar-search-input"
-            size="small"
-            value={toolbarSearchValue}
-            autoComplete="true"
-          ></TextField>
-        </FormControl>
-      </Box>
-    );
-  }
+  const handleToolbarSearchFieldChange = (event) => {
+    setToolbarSearchField(event.target.value);
+  };
+
+  const handleToolbarSearchValueChange = (event) => {
+    settoolbarSearchValue(event.target.value);
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      if (onFilterChange) {
+        if (toolbarSearchField && toolbarSearchValue.trim()) {
+          const query = `${toolbarSearchField}STARTSWITH${toolbarSearchValue.trim()}`;
+          onFilterChange(query);
+        } else {
+          onFilterChange('');
+        }
+      }
+    }
+  };
 
   return (
     <AppBar
-      elevation={2}
+      elevation={1}
       color="default"
-      sx={{ position: "relative", zIndex: 100, padding: 1}}
+      sx={{ position: "relative", zIndex: 100, padding: 1, backgroundColor: "#ddddddc7" }}
     >
       <Toolbar
         sx={{
@@ -161,7 +143,14 @@ const EnhancedToolbar = (props) => {
             >
               {table.label}
             </Typography>
-            <ToolbarSearch />
+            <ToolbarSearch
+              toolbarSearchField={toolbarSearchField}
+              handleToolbarSearchFieldChange={handleToolbarSearchFieldChange}
+              columns={columns}
+              toolbarSearchValue={toolbarSearchValue}
+              handleToolbarSearchValueChange={handleToolbarSearchValueChange}
+              handleKeyPress={handleKeyPress}
+            />
           </>
         )}
         <Tooltip aria-label="Settings">
@@ -201,6 +190,79 @@ EnhancedToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
   tableName: PropTypes.string.isRequired,
   columns: PropTypes.array.isRequired,
+  table: PropTypes.object,
+  onFilterChange: PropTypes.func,
+  onColumnsChange: PropTypes.func,
+};
+
+const ToolbarSearch = ({
+  toolbarSearchField,
+  handleToolbarSearchFieldChange,
+  columns,
+  toolbarSearchValue,
+  handleToolbarSearchValueChange,
+  handleKeyPress,
+}) => {
+  return (
+    <Box sx={{ marginLeft: 1, width: "100%" }}>
+      <Box>
+        <Select
+          labelId="toolbar-search-select-label"
+          id="toolbar-search-select-autowidth"
+          value={toolbarSearchField}
+          onChange={handleToolbarSearchFieldChange}
+          name="toolbar-search-select"
+          sx={{
+            width: "9dvw",
+            height: 32, // Shorter height
+            borderRadius: 0.5,
+            "& .MuiSelect-select": {
+              py: "4px", // Reduce paddingc',
+              height: "1.4375em",
+              minHeight: "auto",
+            },
+          }}
+        >
+          {columns.map((column) => (
+            <MenuItem key={column.element} value={column.element}>
+              {column.column_label}
+            </MenuItem>
+          ))}
+        </Select>
+        <TextField
+          placeholder="Search"
+          sx={{
+            minWidth: "10dvw",
+            maxWidth: "12dvw",
+            "& .MuiInputBase-root": {
+              height: 32, // Shorter height
+              "& input": {
+                py: "4px", // Reduce padding
+                height: "auto",
+              },
+              "& fieldset": {
+                borderRadius: 0.5,
+              },
+            },
+          }}
+          id="toolbar-search-input"
+          value={toolbarSearchValue}
+          onChange={handleToolbarSearchValueChange}
+          onKeyPress={handleKeyPress}
+          autoComplete="off"
+        ></TextField>
+      </Box>
+    </Box>
+  );
+};
+
+ToolbarSearch.propTypes = {
+  toolbarSearchField: PropTypes.string.isRequired,
+  handleToolbarSearchFieldChange: PropTypes.func.isRequired,
+  columns: PropTypes.array.isRequired,
+  toolbarSearchValue: PropTypes.string.isRequired,
+  handleToolbarSearchValueChange: PropTypes.func.isRequired,
+  handleKeyPress: PropTypes.func.isRequired,
 };
 
 export default EnhancedToolbar;
