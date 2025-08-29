@@ -1,5 +1,5 @@
 import PropTypes from "prop-types"; // data type checking
-import React, { useState } from "react";
+import { useState } from "react";
 
 // Styles
 import Box from "@mui/material/Box";
@@ -24,24 +24,75 @@ const EnhancedTableHead = (props) => {
     numSelected,
     rowCount,
     onRequestSort,
+    onFilterChange
   } = props;
 
-  const [showLocalFilter, setShowLocalFilter] = useState(true);
+  const [showLocalFilter, setShowLocalFilter] = useState(false);
   const [localFilters, setLocalFilters] = useState(
-    columns.reduce((acc, column) => ({ ...acc, [column.field]: "" }), {})
+    columns.reduce((acc, column) => ({ ...acc, [column.element]: "" }), {})
   );
 
   const handleLocalFilter = () => {
     setShowLocalFilter(!showLocalFilter);
   };
 
+  const parseFilterValue = (value) => {
+    if (!value) return null;
+    
+    const operators = {
+      '!=': 'NOT LIKE',
+      '=': 'LIKE',
+      '*': 'CONTAINS',
+      '!*': 'NOT CONTAINS',
+      '%': 'ENDSWITH',
+      '!%': 'NOT ENDSWITH'
+    };
+
+    // Check for negation
+    let isNegated = value.startsWith('!');
+    let actualValue = isNegated ? value.substring(1) : value;
+    
+    // Check for operators
+    let operator = 'STARTSWITH'; // default
+    for (const [symbol, op] of Object.entries(operators)) {
+      if (actualValue.startsWith(symbol)) {
+        operator = op;
+        actualValue = actualValue.substring(symbol.length);
+        break;
+      }
+    }
+    
+    return {
+      operator,
+      value: actualValue.trim()
+    };
+  };
+
   const handleLocalFilterChange = (event) => {
     const { target } = event;
-    setLocalFilters((localFilters) => ({
-      ...localFilters,
+    setLocalFilters((prevFilters) => ({
+      ...prevFilters,
       [target.name]: target.value,
     }));
-    console.log("event target => %s : %s", target.name, target.value);
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      const queries = Object.entries(localFilters)
+        .filter(([_, value]) => value.trim())
+        .map(([field, value]) => {
+          const filter = parseFilterValue(value);
+          if (!filter) return null;
+          return `${field}${filter.operator}${filter.value}`;
+        })
+        .filter(Boolean);
+
+      if (queries.length > 0) {
+        onFilterChange(queries.join('^'));
+      } else {
+        onFilterChange('');
+      }
+    }
   };
 
   const createSortHandler = (property) => (event) => {
@@ -49,7 +100,7 @@ const EnhancedTableHead = (props) => {
   };
 
   return (
-    <TableHead>
+    <TableHead sx={{ "& .MuiTableCell-head": { backgroundColor: "#ddddddc7", borderBottom: 1, borderColor: "#ccc"}, }}>
       <TableRow>
         <TableCell padding="checkbox">
           <Tooltip aria-label="Search list">
@@ -73,8 +124,6 @@ const EnhancedTableHead = (props) => {
         {columns.map((c) => (
           <TableCell
             key={`table-head-label-${c.sys_id}`}
-            // align={headCell.numeric ? 'right' : 'left'}
-            // padding={headCell.disablePadding ? 'none' : 'normal'}
             sortDirection={orderBy === c.element ? order : false}
           >
             <TableSortLabel
@@ -101,28 +150,39 @@ const EnhancedTableHead = (props) => {
       <TableRow sx={{ display: showLocalFilter ? "" : "none" }}>
         <TableCell
           padding="checkbox"
-          sx={{ backgroundColor: "#EFEFEF" }}
           key="search-icon-cell"
         ></TableCell>
         <TableCell
           padding="checkbox"
-          sx={{ backgroundColor: "#EFEFEF" }}
           key="select-all-checkbox-cell"
         ></TableCell>
         {columns.map((c) => (
           <TableCell
-            sx={{ backgroundColor: "#EFEFEF" }}
             key={`local-filter-cell-${c.sys_id}`}
           >
             <TextField
               key={`local-filter-${c.sys_id}`}
               size="small"
+              sx={{ 
+                width: "100%",
+                '& .MuiInputBase-root': {
+                  minHeight: 20,
+                  lineHeight: 0,
+                  '& input': {
+                    py: '8px !important',
+                    height: 'auto',
+                  },
+                  '& fieldset': {
+                    borderRadius: .5,
+                  }
+                },
+              }}
               placeholder="Search"
               value={localFilters[c.element] || ""}
               name={c.element}
-              label="Search"
               onChange={handleLocalFilterChange}
-            ></TextField>
+              onKeyPress={handleKeyPress}
+            />
           </TableCell>
         ))}
       </TableRow>
@@ -139,6 +199,7 @@ EnhancedTableHead.propTypes = {
   order: PropTypes.oneOf(["asc", "desc"]).isRequired,
   orderBy: PropTypes.string.isRequired,
   rowCount: PropTypes.number.isRequired,
+  onFilterChange: PropTypes.func.isRequired,
 };
 
 export default EnhancedTableHead;
