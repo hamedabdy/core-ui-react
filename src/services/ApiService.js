@@ -2,7 +2,7 @@
 import axios from "axios";
 
 
-const tableApiUrl = process.env.REACT_APP_PROTOCOL + process.env.REACT_APP_HOST + ":" + process.env.REACT_APP_PORT + process.env.REACT_APP_API_URI;
+const tableApiUrl = process.env.REACT_APP_API_URL; // using relative path via reverse proxy
 
 const ApiService = {
   getTables: async () => {
