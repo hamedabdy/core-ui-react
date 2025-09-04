@@ -25,7 +25,7 @@ function SimpleList({ tableName }) {
   const [error, setError] = useState(null);
   const [order, setOrder] = useState('desc');
   const [orderBy, setOrderBy] = useState('sys_updated_on');
-  const [selected, setSelected] = useState([]);
+  // const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(100);
   const [sysparmQuery, setSysparmQuery] = useState("");
