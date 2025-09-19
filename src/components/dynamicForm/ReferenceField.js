@@ -49,11 +49,11 @@ const ReferenceField = ({
       reference: `${column.name}.${column.element}`
     };
 
-    // Update the field value
+    // Update the field value with only the sys_id
     onChange({
       target: {
         name,
-        value: referenceValue
+        value: referenceValue.sys_id
       }
     });
 
