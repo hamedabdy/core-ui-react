@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Changed
+- **Content Component**: Removed `maxWidth` property from the main `Box` component to ensure it covers 100% width of the page.
+
 ### Added
 - **SimpleList Component**: A new component for displaying simplified table data.
 - **SimpleListToolbar**: Toolbar for the SimpleList component.
@@ -41,6 +44,13 @@
   - Enhanced refresh functionality to reload menu data
 
 ### Changed
+- **ReferenceField Component**: Corrected the value passed to the `onChange` handler.
+  - Previously, the entire `referenceValue` object was passed, leading to database errors when saving.
+  - Now, only the `sys_id` from the selected reference record is passed to the `onChange` handler, ensuring compatibility with database storage.
+- **SimpleList and SimpleTableBody Components**: Implemented row click functionality for reference field selection.
+  - `SimpleList.js` now accepts an `onRowClick` prop and passes it to `SimpleTableBody`.
+  - `SimpleTableBody.js` now handles `onRowClick` events on table rows, returning the full row object.
+  - Disabled navigation link for `sys_id` in `SimpleTableBody` when `onRowClick` is active, ensuring selection instead of navigation in dialogs.
 - Updated SimpleList component to use SimpleListHead and SimpleListToolbar:
   - Replaced EnhancedTableHead with SimpleListHead for a lighter header
   - Replaced EnhancedToolbar with SimpleListToolbar for a simplified toolbar
@@ -49,4 +59,4 @@
     - Returns to previous page if there's navigation history
     - Redirects to table list view if opened in new window without history
   - Improved error message handling with better error details
-  - Improved error message display with dynamic styling based on message type
+- Refactored the main application layout in `Paperbase.js` and `Header.js` to use a standard Material-UI pattern with a fixed header and persistent drawer. This resolves issues with content overflow, incorrect positioning, and excessive whitespace. The new layout is more robust and responsive.

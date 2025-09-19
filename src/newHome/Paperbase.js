@@ -1,10 +1,8 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import CssBaseline from "@mui/material/CssBaseline";
 import Box from "@mui/material/Box";
-// import Typography from "@mui/material/Typography";
-// import Link from "@mui/material/Link";
+import Toolbar from "@mui/material/Toolbar";
 import Navigator from "./Navigator";
 import Content from "./Content";
 import Header from "./Header";
@@ -168,9 +166,6 @@ const drawerWidth = 290;
 
 export default function Paperbase() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const isSmUp = useMediaQuery(theme.breakpoints.up("sm"));
-
-  useEffect(() => {}, []); // Empty dependency array to ensure the effect runs only once on mount
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -178,42 +173,53 @@ export default function Paperbase() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Header onDrawerToggle={handleDrawerToggle} />
       <Box sx={{ display: "flex" }}>
         <CssBaseline />
-
+        <Header onDrawerToggle={handleDrawerToggle} drawerWidth={drawerWidth} />
         <Box
           component="nav"
-          sx={{
-            width: { sm: drawerWidth },
-            flexShrink: { sm: 0 },
-            height: "100dvh",
-            position: "sticky",
-            top: 0,
-            zIndex: 1200,
-          }}
+          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+          aria-label="navigation"
         >
-          {isSmUp ? null : (
-            <Navigator
-              PaperProps={{ style: { width: drawerWidth, height: "calc(100dvh - 48px)", marginTop: 48 } }}
-              variant="temporary"
-              open={mobileOpen}
-              onClose={handleDrawerToggle}
-            />
-          )}
-
+          {/* Mobile drawer */}
           <Navigator
-            PaperProps={{ style: { width: drawerWidth, height: "calc(100dvh - 48px)", marginTop: 48 } }}
-            sx={{ display: { sm: "block", xs: "none" } }}
+            variant="temporary"
+            open={mobileOpen}
+            onClose={handleDrawerToggle}
+            ModalProps={{
+              keepMounted: true, // Better open performance on mobile.
+            }}
+            sx={{
+              display: { xs: "block", sm: "none" },
+              "& .MuiDrawer-paper": {
+                boxSizing: "border-box",
+                width: drawerWidth,
+              },
+            }}
+          />
+          {/* Desktop drawer */}
+          <Navigator
+            sx={{
+              display: { xs: "none", sm: "block" },
+              "& .MuiDrawer-paper": {
+                boxSizing: "border-box",
+                width: drawerWidth,
+              },
+            }}
           />
         </Box>
-        <Box>
-          <Box component="main" sx={{ flex: 1, bgcolor: "#eaeff1" }}>
-            <Content drawerWidth={drawerWidth} />
-          </Box>
-          {/* <Box component="footer" sx={{ p: 2, bgcolor: "#eaeff1" }}>
-            <Copyright />
-          </Box> */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 0,
+            width: { sm: `calc(100% - ${drawerWidth}px)` },
+            height: "100vh",
+            overflow: "auto",
+          }}
+        >
+          <Toolbar />
+          <Content />
         </Box>
       </Box>
     </ThemeProvider>

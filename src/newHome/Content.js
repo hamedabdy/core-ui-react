@@ -11,15 +11,13 @@ import { Outlet } from "react-router-dom";
 import { Box } from "@mui/material";
 
 
-export default function Content({ drawerWidth }) {
+export default function Content() {
   return (
-    <Box
-      sx={{maxWidth: `calc(100dvw - ${drawerWidth}px)`}} // temp solution to avoid horizontal scroll
-    >
-      <AppBar
+    <Box>
+      {/* <AppBar
         position="static"
         color="default"
-        elevation={0}
+        elevation={0}emp solution t
         sx={{ borderBottom: "1px solid rgba(0, 0, 0, 0.12)" }}
       >
         <Toolbar sx={{ display: "none" }}>
@@ -50,17 +48,13 @@ export default function Content({ drawerWidth }) {
             </Grid>
           </Grid>
         </Toolbar>
-      </AppBar>
+      </AppBar> */}
       {/* <Typography sx={{ my: 5, mx: 2 }} color="text.secondary" align="center">
         No users for this project yet
       </Typography> */}
       <Box
         component="section"
         sx={{
-          flex: 1,
-          width: "100%",
-          minWidth: 0,
-          overflow: "hidden",
           p: 0,
         }}
       >

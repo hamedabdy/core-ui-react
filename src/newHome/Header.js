@@ -18,82 +18,82 @@ import Typography from "@mui/material/Typography";
 const lightColor = "rgba(255, 255, 255, 0.7)";
 
 function Header(props) {
-  const { onDrawerToggle } = props;
+  const { onDrawerToggle, drawerWidth } = props;
 
   return (
-    <React.Fragment>
-      <AppBar color="primary" position="sticky" elevation={3}>
-        <Toolbar>
-          <Grid container spacing={1} alignItems="center">
-            <Grid sx={{ display: { sm: "block", xs: "block" } }} item>
-              <IconButton
-                color="red"
-                aria-label="open drawer"
-                onClick={onDrawerToggle}
-                edge="start"
-              >
-                <MenuIcon/>
-              </IconButton>
-              
-            </Grid>
-            <Grid item xs />
-            <Grid item xs>
-              <Typography color="inherit" variant="h6" component="h1">
-                Authentication
-              </Typography>
-            </Grid>
-            <Tabs value={0} textColor="inherit">
-              <Tab label="All" />
-              <Tab label="Favorites" />
-              <Tab label="History" />
-              <Tab label="Workspace" />
-              <Tab label="Admin" />
-            </Tabs>
-            
-            <Grid item>
-              <Button
-                sx={{ borderColor: lightColor }}
-                variant="outlined"
-                color="inherit"
-                size="small"
-              >
-                Web setup
-              </Button>
-            </Grid>
-            <Grid item>
-              <Tooltip title="Help">
-                <IconButton color="inherit">
-                  <HelpIcon />
-                </IconButton>
-              </Tooltip>
-            </Grid>
-            <Grid item>
-              <Tooltip title="Alerts • No alerts">
-                <IconButton color="inherit">
-                  <NotificationsIcon />
-                </IconButton>
-              </Tooltip>
-            </Grid>
-            <Grid item>
-              <IconButton color="inherit" sx={{ p: 0.5 }}>
-                <Avatar src="/static/images/avatar/1.jpg" alt="My Avatar" />
-              </IconButton>
-            </Grid>
+    <AppBar
+      color="primary"
+      position="fixed"
+      elevation={3}
+      sx={{
+        width: { sm: `calc(100% - ${drawerWidth}px)` },
+        ml: { sm: `${drawerWidth}px` },
+      }}
+    >
+      <Toolbar>
+        <Grid container spacing={1} alignItems="center">
+          <Grid sx={{ display: { sm: "none", xs: "block" } }} item>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              onClick={onDrawerToggle}
+              edge="start"
+            >
+              <MenuIcon />
+            </IconButton>
           </Grid>
-        </Toolbar>
-      </AppBar>
-      <AppBar
-        component="div"
-        position="static"
-        elevation={0}
-        sx={{ zIndex: 0 }}
-      ></AppBar>
-    </React.Fragment>
+          <Grid item xs />
+          <Grid item xs>
+            <Typography color="inherit" variant="h6" component="h1">
+              Authentication
+            </Typography>
+          </Grid>
+          <Tabs value={0} textColor="inherit">
+            <Tab label="All" />
+            <Tab label="Favorites" />
+            <Tab label="History" />
+            <Tab label="Workspace" />
+            <Tab label="Admin" />
+          </Tabs>
+
+          <Grid item>
+            <Button
+              sx={{ borderColor: lightColor }}
+              variant="outlined"
+              color="inherit"
+              size="small"
+            >
+              Web setup
+            </Button>
+          </Grid>
+          <Grid item>
+            <Tooltip title="Help">
+              <IconButton color="inherit">
+                <HelpIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+          <Grid item>
+            <Tooltip title="Alerts • No alerts">
+              <IconButton color="inherit">
+                <NotificationsIcon />
+              </IconButton>
+            </Tooltip>
+          </Grid>
+          <Grid item>
+            <IconButton color="inherit" sx={{ p: 0.5 }}>
+              <Avatar src="/static/images/avatar/1.jpg" alt="My Avatar" />
+            </IconButton>
+          </Grid>
+        </Grid>
+      </Toolbar>
+    </AppBar>
   );
 }
 
 Header.propTypes = {
   onDrawerToggle: PropTypes.func.isRequired,
+  drawerWidth: PropTypes.number.isRequired,
 };
 
 export default Header;
