@@ -66,7 +66,7 @@ const EnhancedToolbar = (props) => {
     <AppBar
       elevation={1}
       color="default"
-      sx={{ position: "relative", zIndex: 100, padding: 1, backgroundColor: "#ddddddc7" }}
+      sx={{ position: "relative", zIndex: 100, padding: 1, backgroundColor: "#f5f5f5" }}
     >
       <Toolbar
         sx={{

@@ -100,7 +100,7 @@ const EnhancedTableHead = (props) => {
   };
 
   return (
-    <TableHead sx={{ "& .MuiTableCell-head": { backgroundColor: "#ddddddc7", borderBottom: 1, borderColor: "#ccc"}, }}>
+    <TableHead sx={{ "& .MuiTableCell-head": { backgroundColor: "#f5f5f5", borderBottom: 1, borderColor: "#ccc"}, }}>
       <TableRow>
         <TableCell padding="checkbox">
           <Tooltip aria-label="Search list">
