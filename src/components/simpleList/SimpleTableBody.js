@@ -14,6 +14,7 @@ const SimpleTableBody = (props) => {
     tableName,
     visibleRows,
     emptyRows,
+    onRowClick,
   } = props;
 
   return (
@@ -25,6 +26,8 @@ const SimpleTableBody = (props) => {
             hover
             tabIndex={-1}
             key={row.sys_id}
+            onClick={onRowClick ? () => onRowClick(row) : undefined}
+            style={{ cursor: onRowClick ? 'pointer' : 'default' }}
           >
             <tableCell padding="checkbox" />
             {columns.map((c, i) => (
@@ -41,12 +44,11 @@ const SimpleTableBody = (props) => {
                     scope="row"
                     padding="none"
                   >
-                    <Link
-                      component={ReactRouterLink}
-                      to={`../${tableName}.form?sys_id=${row[c.element]}`}
-                    >
-                      {row[c.element]}
-                    </Link>
+                    {onRowClick ? (
+                      row[c.element]
+                    ) : (
+                      <span>{row[c.element]}</span>
+                    )}
                   </TableCell>
                 )}
               </React.Fragment>
@@ -69,6 +71,7 @@ SimpleTableBody.propTypes = {
   visibleRows: PropTypes.array.isRequired,
   emptyRows: PropTypes.number.isRequired,
   tableName: PropTypes.string.isRequired,
+  onRowClick: PropTypes.func,
 };
 
 export default SimpleTableBody;

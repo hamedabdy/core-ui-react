@@ -1,16 +1,16 @@
 import PropTypes from "prop-types"; // data type checking
 import { useState } from "react";
 
-
 // Styles
 import Box from "@mui/material/Box";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import TableSortLabel from "@mui/material/TableSortLabel";
-import { visuallyHidden } from "@mui/utils";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
+import TextField from "@mui/material/TextField";
+import { visuallyHidden } from "@mui/utils";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 
 const SimpleListHead = (props) => {
@@ -19,18 +19,48 @@ const SimpleListHead = (props) => {
     order,
     orderBy,
     onRequestSort,
+    onFilterChange
   } = props;
-
-  const createSortHandler = (property) => (event) => {
-    onRequestSort(event, property);
-  };
 
   const [showLocalFilter, setShowLocalFilter] = useState(false);
   const [localFilters, setLocalFilters] = useState(
     columns.reduce((acc, column) => ({ ...acc, [column.element]: "" }), {})
   );
+
   const handleLocalFilter = () => {
     setShowLocalFilter(!showLocalFilter);
+  };
+
+  const parseFilterValue = (value) => {
+    if (!value) return null;
+    
+    const operators = {
+      '!=': 'NOT LIKE',
+      '=': 'LIKE',
+      '*': 'CONTAINS',
+      '!*': 'NOT CONTAINS',
+      '%': 'ENDSWITH',
+      '!%': 'NOT ENDSWITH'
+    };
+
+    // Check for negation
+    let isNegated = value.startsWith('!');
+    let actualValue = isNegated ? value.substring(1) : value;
+    
+    // Check for operators
+    let operator = 'STARTSWITH'; // default
+    for (const [symbol, op] of Object.entries(operators)) {
+      if (actualValue.startsWith(symbol)) {
+        operator = op;
+        actualValue = actualValue.substring(symbol.length);
+        break;
+      }
+    }
+    
+    return {
+      operator,
+      value: actualValue.trim()
+    };
   };
 
   const handleLocalFilterChange = (event) => {
@@ -41,8 +71,31 @@ const SimpleListHead = (props) => {
     }));
   };
 
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      const queries = Object.entries(localFilters)
+        .filter(([_, value]) => value.trim())
+        .map(([field, value]) => {
+          const filter = parseFilterValue(value);
+          if (!filter) return null;
+          return `${field}${filter.operator}${filter.value}`;
+        })
+        .filter(Boolean);
+
+      if (queries.length > 0) {
+        onFilterChange(queries.join('^'));
+      } else {
+        onFilterChange('');
+      }
+    }
+  };
+
+  const createSortHandler = (property) => (event) => {
+    onRequestSort(event, property);
+  };
+
   return (
-    <TableHead sx={{ "& .MuiTableCell-head": { backgroundColor: "#ddddddc7", borderBottom: 1, borderColor: "#ccc"}, }}>
+    <TableHead sx={{ "& .MuiTableCell-head": { backgroundColor: "#f5f5f5", borderBottom: 1, borderColor: "#ccc"}, }}>
       <TableRow>
         <TableCell padding="checkbox">
           <Tooltip aria-label="Search list">
@@ -77,6 +130,38 @@ const SimpleListHead = (props) => {
           </TableCell>
         ))}
       </TableRow>
+      <TableRow sx={{ display: showLocalFilter ? "" : "none" }}>
+        <TableCell padding="checkbox" key="search-icon-cell"></TableCell>
+        {columns.map((c) => (
+          <TableCell
+            key={`local-filter-cell-${c.sys_id}`}
+          >
+            <TextField
+              key={`local-filter-${c.sys_id}`}
+              size="small"
+              sx={{ 
+                width: "100%",
+                '& .MuiInputBase-root': {
+                  minHeight: 20,
+                  lineHeight: 0,
+                  '& input': {
+                    py: '8px !important',
+                    height: 'auto',
+                  },
+                  '& fieldset': {
+                    borderRadius: .5,
+                  }
+                },
+              }}
+              placeholder="Search"
+              value={localFilters[c.element] || ""}
+              name={c.element}
+              onChange={handleLocalFilterChange}
+              onKeyPress={handleKeyPress}
+            />
+          </TableCell>
+        ))}
+      </TableRow>
     </TableHead>
   );
 };
@@ -86,6 +171,8 @@ SimpleListHead.propTypes = {
   onRequestSort: PropTypes.func.isRequired,
   order: PropTypes.oneOf(["asc", "desc"]).isRequired,
   orderBy: PropTypes.string.isRequired,
+  rowCount: PropTypes.number.isRequired,
+  onFilterChange: PropTypes.func.isRequired,
 };
 
 export default SimpleListHead;
