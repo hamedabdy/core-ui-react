@@ -18,59 +18,43 @@ import SimpleListToolbar from './simpleList/SimpleListToolbar';
 import TablePaginationActions from './dynamicList/EnhancedTablePagination';
 import QueryFilter from "./dynamicList/QueryFilter";
 
-function SimpleList({ tableName }) {
-  const [columns, setColumns] = useState([]);
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [order, setOrder] = useState('desc');
-  const [orderBy, setOrderBy] = useState('sys_updated_on');
-  // const [selected, setSelected] = useState([]);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(100);
+const SimpleList = ({ tableName, onRowClick }) => {
   const [sysparmQuery, setSysparmQuery] = useState("");
   const [sysparmFields, setSysparmFields] = useState("");
-
-  const [table, setTable] = useState({}); 
-
-  const fetchData = async (query = '') => {
+  const [columns, setColumns] = useState([]);
+  const [data, setData] = useState([]);
+  const [table, setTable] = useState({});
+  const [order, setOrder] = useState("desc");
+  const [orderBy, setOrderBy] = useState("sys_updated_on");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(100);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  const getData = async (query = '') => {
+    setSysparmFields(query)
     try {
       setLoading(true);
+      setError(null);
+      const cols = await ApiService.getColumns(tableName);
+      setColumns(cols.data.rows);
+      // Always fetch data with sysparm_fields if present
       const resp = await ApiService.getData({
         table_name: tableName,
-        sysparm_query: query
+        sysparm_query: sysparmQuery,
+        sysparm_fields: sysparmFields
       });
       setData(resp.data);
+      const tableInfo = await ApiService.getTable(tableName);
+      setTable(tableInfo.data);
     } catch (error) {
       setError(`Error loading data: ${error.message}`);
-      console.log("Error fetching data: ", error);
+      console.log("Error in SimpleList: ", error);
     } finally {
       setLoading(false);
     }
   };
   
-  useEffect(() => {
-    if (!tableName) return;
-    setLoading(true);
-    setError(null);
-    
-    const getData = async () => {
-      try {
-        const cols = await ApiService.getColumns(tableName);
-        setColumns(cols.data.rows);
-        const tableInfo = await ApiService.getTable(tableName);
-        setTable(tableInfo.data);
-        await fetchData();
-      } catch (error) {
-        setError(`Error loading data: ${error.message}`);
-        console.log("Error in SimpleList: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    getData();
-  }, [tableName]);
-
   // Add state for visible columns (elements)
   const [visibleColumnElements, setVisibleColumnElements] = useState([]);
   // When columns are loaded, set all as visible by default or from sysparm_fields
@@ -84,37 +68,42 @@ function SimpleList({ tableName }) {
     }
   }, [columns, sysparmFields]);
   
+  useEffect(() => {
+    if (!tableName) return;
+    getData();
+  }, [tableName]);
+  
   const handleFilterChange = (query) => {
     setSysparmQuery(query);
-    fetchData(query);
-  };
-  
-  // Handler for column selection from EnhancedToolbar
-  const handleColumnsChange = (selectedElements) => {
-    setVisibleColumnElements(selectedElements);
-    // Update sysparm_fields in URL and state
-    const newSysparmFields = selectedElements.join(",");
-    setSysparmFields(newSysparmFields);
-    // Update URL
-    const params = new URLSearchParams(window.location.search);
-    params.set("sysparm_fields", newSysparmFields);
-    // navigate({ search: params.toString() }, { replace: true });
+    getData(query);
   };
 
   const handleRequestSort = (event, property) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
+    const isAsc = orderBy === property && order === "asc";
+    setOrder(isAsc ? "desc" : "asc");
     setOrderBy(property);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
+const handleChangePage = (event, newPage) => {
+  setPage(newPage);
+};
 
-  const handleChangeRowsPerPage = (event) => {
+const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
+// Handler for column selection from EnhancedToolbar
+const handleColumnsChange = (selectedElements) => {
+  setVisibleColumnElements(selectedElements);
+  // Update sysparm_fields in URL and state
+  const newSysparmFields = selectedElements.join(",");
+  setSysparmFields(newSysparmFields);
+  // Update URL
+  const params = new URLSearchParams(window.location.search);
+  params.set("sysparm_fields", newSysparmFields);
+  // navigate({ search: params.toString() }, { replace: true });
+};
 
   if (!tableName) return <div>No table selected.</div>;
   if (loading) return <div>Loading...</div>;
@@ -125,10 +114,12 @@ function SimpleList({ tableName }) {
   const visibleRows = data.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Paper sx={{ width: '100%', mb: 2 }}>
+    <Box sx={{ width: "100%" }}>
+      <Paper sx={{ width: "100%", mb: 2 }}>
         <SimpleListToolbar 
           table={table}
+          columns={columns}
+          onFilterChange={handleFilterChange}
         />
         <QueryFilter tableName={tableName} setData={setData} />
         <TableContainer>
@@ -144,12 +135,14 @@ function SimpleList({ tableName }) {
               order={order}
               orderBy={orderBy}
               onRequestSort={handleRequestSort}
+              onFilterChange={handleFilterChange}
             />
             <SimpleTableBody
               columns={columns}
               visibleRows={visibleRows}
               emptyRows={emptyRows}
               tableName={tableName}
+              onRowClick={onRowClick}
             />
           </Table>
         </TableContainer>
@@ -170,6 +163,7 @@ function SimpleList({ tableName }) {
 
 SimpleList.propTypes = {
   tableName: PropTypes.string.isRequired,
+  onRowClick: PropTypes.func,
 };
 
 export default SimpleList;
