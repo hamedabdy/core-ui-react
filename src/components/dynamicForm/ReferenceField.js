@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 import Dialog from '@mui/material/Dialog';
-// import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
-// import DynamicList from '../DynamicList';
 import { styled } from '@mui/material/styles';
 import SimpleList from '../SimpleList';
+import ApiService from '../../services/ApiService';
 
 const StyledDialog = styled(Dialog)(({ theme }) => ({
   '& .MuiDialog-paper': {
@@ -33,12 +32,32 @@ const ReferenceField = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [displayValue, setDisplayValue] = useState(value?.display || '');
+
+  useEffect(() => {
+    const fetchSysName = async () => {
+      if (value && column.reference) {
+        try {
+          const response = await ApiService.getSysName(column.reference, value);
+          if (response.status === "success" && response.data) {
+            setDisplayValue(response.data);
+          } else {
+            console.warn(`Could not fetch sys_name for table ${column.reference}, sys_id ${value}: ${response.err}`);
+            setDisplayValue(''); // Clear display if not found or error
+          }
+        } catch (error) {
+          console.error(`Error fetching sys_name for table ${column.reference}, sys_id ${value}:`, error);
+          setDisplayValue(''); // Clear display on API error
+        }
+      } else {
+        setDisplayValue(''); // Clear display if no value or reference
+      }
+    };
+
+    fetchSysName();
+  }, [value, column.reference]); // Re-run when value or reference table changes
   
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
-  // console.log("ReferenceField - Rendering reference field for column: %o", column);
-  
 
   const handleSelect = (selectedItem) => {
     // Create a reference value object containing both display and technical data

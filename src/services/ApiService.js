@@ -95,6 +95,17 @@ const ApiService = {
       throw error;
     }
   },
+
+  getSysName: async (tableName, sys_id) => {
+    const uri = `${tableApiUrl}/sys_name/${tableName}/${sys_id}`;
+    try {
+      const response = await axios.get(uri);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching sys_name:", error);
+      throw error;
+    }
+  },
 };
 
 export default ApiService;

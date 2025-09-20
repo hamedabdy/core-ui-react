@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+- **ReferenceField Component**: Implemented `useEffect` hook to fetch and display `sys_name` on page load.
+  - Utilized the newly created `ApiService.getSysName` function to retrieve the `sys_name` based on the `sys_id` and `column.reference` properties.
+  - Ensures that the display value of the reference field is correctly populated when the component mounts or when its `value` or `column.reference` props change.
+- **Sequelizer, tableApi, and ApiService**: Added functionality to retrieve `sys_name` by `sys_id`.
+  - Created `getSysNameBySysId` function in `core-server/src/services/Sequelizer.js` to query the database for a given table name and `sys_id`, returning the `sys_name` value.
+  - Created a new API endpoint `/sys_name/:table_name/:sys_id` in `core-server/src/routes/tableApi.js` to expose the `getSysNameBySysId` function.
+  - Created a new `getSysName` function in `core-ui-react/src/services/ApiService.js` to allow the React frontend to call the new API endpoint and retrieve the `sys_name`.
+
 ### Changed
 - **Content Component**: Removed `maxWidth` property from the main `Box` component to ensure it covers 100% width of the page.
 
