@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Added
+- **SimpleTableBody Component**: Implemented `useEffect` hook to fetch and display `sys_name` for reference fields.
+  - Utilized `ApiService.getSysName` to retrieve the `sys_name` for reference `sys_id`s in table rows.
+  - Ensures that reference fields in the table body display their human-readable `sys_name` instead of the technical `sys_id`.
+- **EnhancedTableBody Component**: Implemented `useEffect` hook to fetch and display `sys_name` for reference fields.
+  - Utilized `ApiService.getSysName` to retrieve the `sys_name` for reference `sys_id`s in table rows.
+  - Ensures that reference fields in the table body display their human-readable `sys_name` instead of the technical `sys_id`.
 - **ReferenceField Component**: Implemented `useEffect` hook to fetch and display `sys_name` on page load.
   - Utilized the newly created `ApiService.getSysName` function to retrieve the `sys_name` based on the `sys_id` and `column.reference` properties.
   - Ensures that the display value of the reference field is correctly populated when the component mounts or when its `value` or `column.reference` props change.

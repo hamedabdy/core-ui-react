@@ -1,9 +1,10 @@
 import PropTypes from "prop-types"; // data type checking
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link as ReactRouterLink } from "react-router-dom";
 
 // Styles
 import Box from "@mui/material/Box";
+import ApiService from "../../services/ApiService";
 import Link from "@mui/material/Link";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
@@ -97,6 +98,47 @@ const EnhancedTableBody = (props) => {
     emptyRows,
   } = props;
 
+  const [referenceDisplayNames, setReferenceDisplayNames] = useState({});
+
+  useEffect(() => {
+    const fetchReferenceNames = async () => {
+      const newDisplayNames = {};
+      for (const row of visibleRows) {
+        for (const col of columns) {
+          if (col.reference && row[col.element]) { // Check if it's a reference column and has a value
+            const sysId = row[col.element];
+            const tableName = col.reference;
+
+            // Only fetch if not already fetched for this row and column
+            if (!referenceDisplayNames[sysId] || !referenceDisplayNames[sysId][col.element]) {
+              try {
+                const response = await ApiService.getSysName(tableName, sysId);
+                if (response.status === "success" && response.data) {
+                  if (!newDisplayNames[sysId]) newDisplayNames[sysId] = {};
+                  newDisplayNames[sysId][col.element] = response.data;
+                } else {
+                  console.warn(`Could not fetch sys_name for table ${tableName}, sys_id ${sysId}: ${response.err}`);
+                }
+              } catch (error) {
+                console.error(`Error fetching sys_name for table ${tableName}, sys_id ${sysId}:`, error);
+              }
+            }
+          }
+        }
+      }
+      // Merge newDisplayNames with existing ones to avoid overwriting already fetched data
+      setReferenceDisplayNames(prev => {
+        const updated = { ...prev };
+        for (const sysId in newDisplayNames) {
+          updated[sysId] = { ...updated[sysId], ...newDisplayNames[sysId] };
+        }
+        return updated;
+      });
+    };
+
+    fetchReferenceNames();
+  }, [visibleRows, columns]); // Re-run when visibleRows or columns change
+
   return (
     <TableBody>
       {visibleRows.map((row, index) => {
@@ -131,30 +173,41 @@ const EnhancedTableBody = (props) => {
                 }}
               />
             </TableCell>
-            {columns.map((c, i) => (
-              <React.Fragment key={`${c.element}_${row.sys_id}`}>
-                {c.element !== "sys_id" ? (
-                  <TableCell key={`${c.element}_${c.sys_id}`}>
-                    {row[c.element]}
-                  </TableCell>
-                ) : (
-                  <TableCell
-                    key={`${c.element}_${c.sys_id}`}
-                    component="th"
-                    id={labelId}
-                    scope="row"
-                    padding="none"
-                  >
-                    <Link
-                      component={ReactRouterLink}
-                      to={`../${tableName}.form?sys_id=${row[c.element]}`}
+            {columns.map((c, i) => {
+              const cellValue = row[c.element];
+              let displayContent = cellValue;
+
+              if (c.reference && cellValue) { // If it's a reference column and has a value
+                if (referenceDisplayNames[cellValue] && referenceDisplayNames[cellValue][c.element]) {
+                  displayContent = referenceDisplayNames[cellValue][c.element];
+                }
+              }
+
+              return (
+                <React.Fragment key={`${c.element}_${row.sys_id}`}>
+                  {c.element !== "sys_id" ? (
+                    <TableCell key={`${c.element}_${c.sys_id}`}>
+                      {displayContent}
+                    </TableCell>
+                  ) : (
+                    <TableCell
+                      key={`${c.element}_${c.sys_id}`}
+                      component="th"
+                      id={labelId}
+                      scope="row"
+                      padding="none"
                     >
-                      {row[c.element]}
-                    </Link>
-                  </TableCell>
-                )}
-              </React.Fragment>
-            ))}
+                      <Link
+                        component={ReactRouterLink}
+                        to={`../${tableName}.form?sys_id=${cellValue}`}
+                      >
+                        {cellValue}
+                      </Link>
+                    </TableCell>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </TableRow>
         );
       })}
