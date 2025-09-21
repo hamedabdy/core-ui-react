@@ -171,7 +171,6 @@ SimpleListHead.propTypes = {
   onRequestSort: PropTypes.func.isRequired,
   order: PropTypes.oneOf(["asc", "desc"]).isRequired,
   orderBy: PropTypes.string.isRequired,
-  rowCount: PropTypes.number.isRequired,
   onFilterChange: PropTypes.func.isRequired,
 };
 

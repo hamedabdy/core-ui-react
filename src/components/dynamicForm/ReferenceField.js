@@ -39,50 +39,60 @@ const ReferenceField = ({
   ...props
 }) => {
   const [open, setOpen] = useState(false);
-  const [displayValue, setDisplayValue] = useState(value?.display || '');
+  const [displayValue, setDisplayValue] = useState(value);
   const [infoPopoverAnchorEl, setInfoPopoverAnchorEl] = useState(null); // State for info popover anchor
   const [moreActionsAnchorEl, setMoreActionsAnchorEl] = useState(null); // State for more actions popover anchor
+  const [referenceKey, setReferenceKey] = useState('sys_id'); // Default to sys_id
 
   useEffect(() => {
-    const fetchSysName = async () => {
-      if (value && column.reference) {
+    const fetchReferenceKeyAndSysName = async () => {
+      if (column.reference) {
         try {
-          const response = await ApiService.getSysName(column.reference, value);
-          if (response.status === "success" && response.data) {
-            setDisplayValue(response.data);
-          } else {
-            console.warn(`Could not fetch sys_name for table ${column.reference}, sys_id ${value}: ${response.err}`);
-            setDisplayValue(''); // Clear display if not found or error
-          }
+          const keyResponse = await ApiService.getReferenceKey(column.sys_id);
+          console.log("[ReferenceField] Fetched reference key:", column.element, " -- ", column.sys_id, "->", keyResponse);
+          
+          if (keyResponse.status === "success" && keyResponse.data)
+            setReferenceKey(keyResponse.data);
+          
         } catch (error) {
-          console.error(`Error fetching sys_name for table ${column.reference}, sys_id ${value}:`, error);
-          setDisplayValue(''); // Clear display on API error
+          console.error(`[ReferenceField] Error fetching reference key for column ${column.element}:`, error);
         }
-      } else {
-        setDisplayValue(''); // Clear display if no value or reference
+
+        if (value) {
+          try {
+            const response = await ApiService.getSysName(column.reference, value, referenceKey);
+            if (response.status === "success" && response.data)
+              setDisplayValue(response.data);
+          } catch (error) {
+            console.error(`[ReferenceField] Error fetching sys_name for table ${column.reference}, value ${value}:`, error);
+          }
+        }
       }
+
     };
 
-    fetchSysName();
+    fetchReferenceKeyAndSysName();
   }, [value, column.reference]); // Re-run when value or reference table changes
   
   // Handle opening and closing of the record selector dialog
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
   const handleSelect = (selectedItem) => {
+    const selectedValue = selectedItem[referenceKey] || selectedItem.sys_id;
+
     // Create a reference value object containing both display and technical data
     const referenceValue = {
-      display: selectedItem.sys_name || selectedItem.name,
-      sys_id: selectedItem.sys_id,
+      display: selectedItem.sys_name,
+      value: selectedValue,
       table: column.reference,
       reference: `${column.name}.${column.element}`
     };
 
-    // Update the field value with only the sys_id
+    // Update the field value with the determined value (sys_id or other attribute)
     onChange({
       target: {
         name,
-        value: referenceValue.sys_id
+        value: referenceValue.value
       }
     });
 
@@ -108,7 +118,7 @@ const ReferenceField = ({
           'data-type': 'reference_input',
           'data-table': column.reference,
           'data-ref': `${column.name}.${column.element}`,
-          'data-sys-id': value?.sys_id || '',
+          'data-sys-id': value?.value || '',
           autoComplete: 'off',
           autoCorrect: 'off',
           spellCheck: 'false'
@@ -206,7 +216,7 @@ const ReferenceField = ({
       >
         <Box sx={{ p: 0, maxWidth: 650 }}>
           {value && column.reference ? (
-            <SimpleForm tableName={column.reference} sysId={typeof value === 'object' ? value.sys_id : value} />
+            <SimpleForm tableName={column.reference} sysId={typeof value === 'object' ? value.value : value} />
           ) : (
             <Typography>No reference record selected.</Typography>
           )}

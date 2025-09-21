@@ -10,6 +10,8 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
   // Ensure c.mandatory is properly handled
   const isMandatory = c.mandatory === false;
   const renderField = () => {
+    console.log("Rendering field for column:", c.element, " ----- ", c.internal_type);
+    
     if (c.internal_type === 'reference') {
       return (
         <ReferenceField

@@ -31,6 +31,14 @@
   - Created `getSysNameBySysId` function in `core-server/src/services/Sequelizer.js` to query the database for a given table name and `sys_id`, returning the `sys_name` value.
   - Created a new API endpoint `/sys_name/:table_name/:sys_id` in `core-server/src/routes/tableApi.js` to expose the `getSysNameBySysId` function.
   - Created a new `getSysName` function in `core-ui-react/src/services/ApiService.js` to allow the React frontend to call the new API endpoint and retrieve the `sys_name`.
+- **ApiService**: Added `getReferenceKey` function to retrieve the display value for a reference key.
+  - This function calls the new `/reference_key/:table_name/:sys_id` API endpoint.
+
+## 2025-09-21
+### Changed
+- **ReferenceField Component**: Modified to dynamically determine the stored reference value.
+  - Fetches `referenceKey` using `ApiService.getReferenceKey` based on the `column.reference` table.
+  - Uses the fetched `referenceKey` (defaulting to `sys_id`) to store the appropriate value from the selected record in the `onChange` handler. This allows storing either `sys_id` or another specified attribute.
 
 ### Changed
 - **Content Component**: Removed `maxWidth` property from the main `Box` component to ensure it covers 100% width of the page.

@@ -94,13 +94,24 @@ const ApiService = {
     }
   },
 
-  getSysName: async (tableName, sys_id) => {
-    const uri = `${tableApiUrl}/sys_name/${tableName}/${sys_id}`;
+  getSysName: async (tableName, value, reference_key) => {
+    const uri = `${tableApiUrl}/getSysName/${tableName}?value=${value}&reference_key=${reference_key}`;
     try {
       const response = await axios.get(uri);
       return response.data;
     } catch (error) {
       console.error("Error fetching sys_name:", error);
+      throw error;
+    }
+  },
+
+  getReferenceKey: async (sys_id) => {
+    const uri = `${tableApiUrl}/getReferenceKey/${sys_id}`;
+    try {
+      const response = await axios.get(uri);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching reference key:", error);
       throw error;
     }
   },

@@ -99,28 +99,36 @@ const EnhancedTableBody = (props) => {
   } = props;
 
   const [referenceDisplayNames, setReferenceDisplayNames] = useState({});
+  const [referenceKey, setReferenceKey] = useState('sys_id'); // Default to sys_id
 
   useEffect(() => {
     const fetchReferenceNames = async () => {
       const newDisplayNames = {};
       for (const row of visibleRows) {
         for (const col of columns) {
-          if (col.reference && row[col.element]) { // Check if it's a reference column and has a value
-            const sysId = row[col.element];
+          if (col.internal_type === "reference" && col.reference && row[col.element]) { // Check if it's a reference column and has a value
+            const value = row[col.element];
             const tableName = col.reference;
 
+            try {   
+            const keyResponse = await ApiService.getReferenceKey(col.sys_id);
+          if (keyResponse.status === "success" && keyResponse.data)
+            setReferenceKey(keyResponse.data);
+          
+        } catch (error) {
+          console.error(`[ReferenceField] Error fetching reference key for column ${col.element}:`, error);
+        }
+
             // Only fetch if not already fetched for this row and column
-            if (!referenceDisplayNames[sysId] || !referenceDisplayNames[sysId][col.element]) {
+            if (!referenceDisplayNames[value] || !referenceDisplayNames[value][col.element]) {
               try {
-                const response = await ApiService.getSysName(tableName, sysId);
+                const response = await ApiService.getSysName(tableName, value, col.reference_key || 'sys_id');
                 if (response.status === "success" && response.data) {
-                  if (!newDisplayNames[sysId]) newDisplayNames[sysId] = {};
-                  newDisplayNames[sysId][col.element] = response.data;
-                } else {
-                  console.warn(`Could not fetch sys_name for table ${tableName}, sys_id ${sysId}: ${response.err}`);
+                  if (!newDisplayNames[value]) newDisplayNames[value] = {};
+                  newDisplayNames[value][col.element] = response.data;
                 }
               } catch (error) {
-                console.error(`Error fetching sys_name for table ${tableName}, sys_id ${sysId}:`, error);
+                console.error(`Error fetching sys_name for table ${tableName}, value ${value}:`, error);
               }
             }
           }
