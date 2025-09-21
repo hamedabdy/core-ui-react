@@ -67,8 +67,6 @@ const ApiService = {
    * @param {Object} newData key:value to insert into table
    */
   addData: async (tableName, newData) => {
-    console.log("ApiService - addData - Inserting into table : %s - data : %o", tableName, newData);
-    
     const uri = `${tableApiUrl}/rows/${tableName}`;
     try {
       const response = await axios.post(uri, newData, {

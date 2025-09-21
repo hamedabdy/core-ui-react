@@ -1,8 +1,11 @@
+import {useState} from "react";
 import { Grid, Typography, FormControl, TextField } from "@mui/material";
-import ReferenceField from './ReferenceField';
+import ReferenceField from "./ReferenceField";
+import EnhancedCheckBox from "../dynamicForm/EnhancedCheckboxes";
 
-const FormContents = ({ c, formData, handleInputChange, error, setError }) => {
-  // console.log("FormContents - Rendering field - Mandatory : %s - element : %s", c.mandatory, c.element);
+const FormContents = ({ c, formData, setFormData, handleInputChange, error, setError }) => {
+
+  const [checkboxes, setCheckboxes] = useState({});
   
   // Ensure c.mandatory is properly handled
   const isMandatory = c.mandatory === false;
@@ -22,6 +25,18 @@ const FormContents = ({ c, formData, handleInputChange, error, setError }) => {
           helperText={error ? "This field is required" : ""}
           required={isMandatory}
           size="small"
+        />
+      );
+    }
+
+    if(c.internal_type === 'boolean') {
+      return (
+        <EnhancedCheckBox
+          c={c}
+          checkboxes={checkboxes}
+          formData={formData}
+          setCheckboxes={setCheckboxes}
+          setFormData={setFormData}
         />
       );
     }

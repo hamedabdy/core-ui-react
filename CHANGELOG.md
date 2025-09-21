@@ -1,8 +1,23 @@
 # Changelog
 
-## [Unreleased]
+## 2025-09-20
+- Added a vertical 3 dots icon button beside the reference field, which on mouse hover, opens a vertical popover with other buttons (e.g., information button).
+- Modified the "more actions" popover to open on mouse hover and close on mouse leave.
+- **SimpleForm Component**: Corrected an issue where `columns.map` was not a function and fields were not displaying.
+  - Ensured that the `columns` state is correctly set to an array by accessing `columnsResponse.data.data`, as the API response nests the actual column data.
+  - Adjusted `formData` population to correctly handle API responses that might return a single object or an array containing the record.
 
 ### Added
+- **ReferenceField Component**: Integrated `SimpleForm` to display reference record details in a popover.
+  - Added an "information" icon button (`InfoOutlinedIcon`) next to the search icon.
+  - When clicked, this button opens a `Popover` displaying a `SimpleForm` instance, which shows the fields and values of the referenced record (using `tableName` from `column.reference` and the current `value` as `sysId`).
+  - The `tableName` is also shown in a tooltip at the top of the `SimpleForm`.
+  - Ensured that the `sysId` prop passed to `SimpleForm` is always a string, extracting it from the `value` object if necessary.
+- **SimpleForm Component**: Created a new `SimpleForm` component in `core-ui-react/src/components/simpleForm/SimpleForm.js`.
+  - This component is inspired by `DynamicForm` but is simplified to only display fields and their values.
+  - It takes `tableName` and `sysId` as input arguments.
+  - It fetches table columns and record data using `ApiService.getColumns` and `ApiService.getData`.
+  - The `tableName` is displayed in a tooltip at the top of the form.
 - **SimpleTableBody Component**: Implemented `useEffect` hook to fetch and display `sys_name` for reference fields.
   - Utilized `ApiService.getSysName` to retrieve the `sys_name` for reference `sys_id`s in table rows.
   - Ensures that reference fields in the table body display their human-readable `sys_name` instead of the technical `sys_id`.
@@ -11,7 +26,7 @@
   - Ensures that reference fields in the table body display their human-readable `sys_name` instead of the technical `sys_id`.
 - **ReferenceField Component**: Implemented `useEffect` hook to fetch and display `sys_name` on page load.
   - Utilized the newly created `ApiService.getSysName` function to retrieve the `sys_name` based on the `sys_id` and `column.reference` properties.
-  - Ensures that the display value of the reference field is correctly populated when the component mounts or when its `value` or `column.reference` props change.
+  - Ensures that the display value of the reference field is correctly populated when the component mounts or when its `value` or `column.reference` props changes.
 - **Sequelizer, tableApi, and ApiService**: Added functionality to retrieve `sys_name` by `sys_id`.
   - Created `getSysNameBySysId` function in `core-server/src/services/Sequelizer.js` to query the database for a given table name and `sys_id`, returning the `sys_name` value.
   - Created a new API endpoint `/sys_name/:table_name/:sys_id` in `core-server/src/routes/tableApi.js` to expose the `getSysNameBySysId` function.

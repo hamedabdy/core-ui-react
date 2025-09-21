@@ -1,27 +1,17 @@
-import {
-  useState,
-  useEffect,
-  // useRef,
-  // startTransition,
-  // Suspense,
-} from "react";
+import {useState, useEffect, } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-
-import ApiService from "../services/ApiService";
+import { Paper, Typography, Grid, Box } from "@mui/material";
 
 // Styles
 // import Autocomplete from "@mui/material/Autocomplete";
 // import FormControlLabel from "@mui/material/FormControlLabel";
 // import LinearProgress from "@mui/material/LinearProgress";
 
-// import { styled } from "@mui/system";
-import { Paper, Typography, Grid, Box } from "@mui/material";
-
 // Import Local Components
-import PageHeader from "./dynamicForm/PageHeader";
-import PageFooter from "./dynamicForm/PageFooter";
-import FormContents from "./dynamicForm/FormContents";
-import EnhancedCheckBox from "./dynamicForm/EnhancedCheckboxes";
+import ApiService from "../../services/ApiService";
+import PageHeader from "./PageHeader";
+import PageFooter from "./PageFooter";
+import FormContents from "./FormContents";
 
 const DynamicForm = () => {
   const navigate = useNavigate();
@@ -32,7 +22,6 @@ const DynamicForm = () => {
   const [table, setTable] = useState({}); // table metadata
   const [formData, setFormData] = useState({});
   const [reloadData, setReloadData] = useState(false);
-  const [checkboxes, setCheckboxes] = useState({});
   const [error, setError] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
@@ -212,23 +201,14 @@ const DynamicForm = () => {
         <Grid container spacing={2}>
           {columns.map((c) => (
             <Grid item xs={6} key={`grid-input-${c.sys_id}`}>
-              {c.internal_type === "boolean" ? (
-                <EnhancedCheckBox
-                  c={c}
-                  checkboxes={checkboxes}
-                  formData={formData}
-                  setCheckboxes={setCheckboxes}
-                  setFormData={setFormData}
-                />
-              ) : (
-                <FormContents
-                  c={c}
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  error={error}
-                  setError={setError}
-                />
-              )}
+              <FormContents
+                c={c}
+                formData={formData}
+                setFormData={setFormData}
+                handleInputChange={handleInputChange}
+                error={error}
+                setError={setError}
+              />
             </Grid>
           ))}
         </Grid>

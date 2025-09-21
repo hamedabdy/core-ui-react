@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 
-import ApiService from "../services/ApiService";
+import ApiService from "../../services/ApiService";
 
 // Styles
 import Box from "@mui/material/Box";
@@ -15,12 +15,12 @@ import TablePagination from "@mui/material/TablePagination";
 // import Switch from "@mui/material/Switch";
 
 // IMPORT LOCAL COMPONENTS
-import EnhancedToolbar from "./dynamicList/EnhancedToolbar";
-import QueryFilter from "./dynamicList/QueryFilter";
-import EnhancedTableHead from "./dynamicList/EnhancedTableHead";
-import EnhancedTableBody from "./dynamicList/EnhancedTableBody";
-import TablePaginationActions from "./dynamicList/EnhancedTablePagination";
-import Utils from "./dynamicList/Utils";
+import EnhancedToolbar from "../dynamicList/EnhancedToolbar";
+import QueryFilter from "../dynamicList/QueryFilter";
+import EnhancedTableHead from "../dynamicList/EnhancedTableHead";
+import EnhancedTableBody from "../dynamicList/EnhancedTableBody";
+import TablePaginationActions from "../dynamicList/EnhancedTablePagination";
+import Utils from "./Utils";
 
 const DynamicList = () => {
   const { tableName } = useParams();

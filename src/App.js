@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { Typography } from "@mui/material";
 
 import Home from "./components/Home";
-const DynamicForm = lazy(() => import("./components/DynamicForm"));
-const DynamicList = lazy(() => import("./components/DynamicList"));
+const DynamicForm = lazy(() => import("./components/dynamicForm/DynamicForm"));
+const DynamicList = lazy(() => import("./components/dynamicList/DynamicList"));
 const PaperBase = lazy(() => import("./newHome/Paperbase.js"));
 
 function App() {

@@ -1,9 +1,9 @@
 import PropTypes from "prop-types"; // data type checking
 import React, { useState, useEffect } from "react";
-import { Link as ReactRouterLink } from "react-router-dom";
+// import { Link as ReactRouterLink } from "react-router-dom";
 
 // Styles
-import Link from "@mui/material/Link";
+// import Link from "@mui/material/Link";
 import ApiService from "../../services/ApiService";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
@@ -12,7 +12,7 @@ import TableBody from "@mui/material/TableBody";
 const SimpleTableBody = (props) => {
   const {
     columns,
-    tableName,
+    // tableName,
     visibleRows,
     emptyRows,
     onRowClick,
