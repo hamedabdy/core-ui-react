@@ -194,12 +194,11 @@ const EnhancedTableBody = (props) => {
               return (
                 <React.Fragment key={`${c.element}_${row.sys_id}`}>
                   {c.element !== "sys_id" ? (
-                    <TableCell key={`${c.element}_${c.sys_id}`}>
+                    <TableCell>
                       {displayContent}
                     </TableCell>
                   ) : (
                     <TableCell
-                      key={`${c.element}_${c.sys_id}`}
                       component="th"
                       id={labelId}
                       scope="row"
