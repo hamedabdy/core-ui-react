@@ -1,5 +1,5 @@
 import {useState} from "react";
-import { Grid, Typography, FormControl, TextField } from "@mui/material";
+import { Grid, Typography, TextField } from "@mui/material";
 import ReferenceField from "./ReferenceField";
 import EnhancedCheckBox from "../dynamicForm/EnhancedCheckboxes";
 
@@ -10,7 +10,6 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
   // Ensure c.mandatory is properly handled
   const isMandatory = c.mandatory === false;
   const renderField = () => {
-    console.log("Rendering field for column:", c.element, " ----- ", c.internal_type);
     
     if (c.internal_type === 'reference') {
       return (
@@ -69,9 +68,7 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
         </Typography>
       </Grid>
       <Grid item xs={6} key={`grid-field-${c.sys_id}`}>
-        <FormControl fullWidth variant="outlined">
-          {renderField()}
-        </FormControl>
+        {renderField()}
       </Grid>
     </Grid>
   );

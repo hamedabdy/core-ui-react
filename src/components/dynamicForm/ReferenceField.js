@@ -49,7 +49,6 @@ const ReferenceField = ({
       if (column.reference) {
         try {
           const keyResponse = await ApiService.getReferenceKey(column.sys_id);
-          console.log("[ReferenceField] Fetched reference key:", column.element, " -- ", column.sys_id, "->", keyResponse);
           
           if (keyResponse.status === "success" && keyResponse.data)
             setReferenceKey(keyResponse.data);

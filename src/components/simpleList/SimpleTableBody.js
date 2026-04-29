@@ -90,28 +90,26 @@ const SimpleTableBody = (props) => {
                 }
               }
 
+              const cellKey = `cell${i}_${c.element}_${row.sys_id}`;
+
+              if (c.element !== "sys_id") {
+                return (
+                  <TableCell key={cellKey}>
+                    {displayContent}
+                  </TableCell>
+                );
+              }
+
               return (
-                <React.Fragment key={`${c.element}_${row.sys_id}`}>
-                  {c.element !== "sys_id" ? (
-                    <TableCell key={`${c.element}_${c.sys_id}`}>
-                      {displayContent}
-                    </TableCell>
-                  ) : (
-                    <TableCell
-                      key={`${c.element}_${c.sys_id}`}
-                      component="th"
-                      id={labelId}
-                      scope="row"
-                      padding="none"
-                    >
-                      {onRowClick ? (
-                        displayContent
-                      ) : (
-                        <span>{displayContent}</span>
-                      )}
-                    </TableCell>
-                  )}
-                </React.Fragment>
+                <TableCell
+                  key={cellKey}
+                  component="th"
+                  id={labelId}
+                  scope="row"
+                  padding="none"
+                >
+                  {onRowClick ? displayContent : <span>{displayContent}</span>}
+                </TableCell>
               );
             })}
           </TableRow>
