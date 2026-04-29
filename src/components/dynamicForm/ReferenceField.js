@@ -39,7 +39,7 @@ const ReferenceField = ({
   ...props
 }) => {
   const [open, setOpen] = useState(false);
-  const [displayValue, setDisplayValue] = useState(value);
+  const [displayValue, setDisplayValue] = useState(value ?? '');
   const [infoPopoverAnchorEl, setInfoPopoverAnchorEl] = useState(null); // State for info popover anchor
   const [moreActionsAnchorEl, setMoreActionsAnchorEl] = useState(null); // State for more actions popover anchor
   const [referenceKey, setReferenceKey] = useState('sys_id'); // Default to sys_id
