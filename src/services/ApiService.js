@@ -1,10 +1,13 @@
 // services/ApiService.js
 import axios from "axios";
 
-
 const tableApiUrl = process.env.REACT_APP_API_URL; // using relative path via reverse proxy
 
 const ApiService = {
+  /**
+   * Fetches a list of available tables.
+   * @returns {Promise<Object[]>} List of tables.
+   */
   getTables: async () => {
     try {
       const response = await axios.get(`${tableApiUrl}/tables`);
@@ -15,6 +18,11 @@ const ApiService = {
     }
   },
 
+  /**
+   * Fetches metadata for a specific table.
+   * @param {String} tableName Technical name of the table.
+   * @returns {Promise<Object>} Table metadata.
+   */
   getTable: async (tableName) => {
     const uri = `${tableApiUrl}/table_info/${tableName}`;
     try {
@@ -27,7 +35,9 @@ const ApiService = {
   },
 
   /**
-   * @param {String} tableName name of the table to get columns for
+   * Fetches column definitions for a table.
+   * @param {String} tableName Name of the table to get columns for.
+   * @returns {Promise<Object[]>} Column metadata.
    */
   getColumns: async (tableName) => {
     const uri = `${tableApiUrl}/columns/${tableName}`;
@@ -41,7 +51,13 @@ const ApiService = {
   },
 
   /**
-   * @param {Object} parms contains sys_id, tableName, and optionally sysparm_fields (comma-separated string of column names)
+   * Fetches row data for a table using query parameters.
+   * @param {Object} parms Request parameters.
+   * @param {String} [parms.sys_id] Optional sys_id to filter by.
+   * @param {String} [parms.sysparm_query] Optional query string.
+   * @param {String} [parms.sysparm_fields] Optional comma-separated fields to return.
+   * @param {String} parms.table_name Technical name of the table.
+   * @returns {Promise<Object[]>} Row data for the specified table.
    */
   getData: async (parms) => {
     let p = {};
@@ -63,8 +79,10 @@ const ApiService = {
   },
 
   /**
-   * @param {String} tableName technical name of the table
-   * @param {Object} newData key:value to insert into table
+   * Inserts a new row into the specified table.
+   * @param {String} tableName Technical name of the table.
+   * @param {Object} newData Key-value pairs to insert into the table.
+   * @returns {Promise<Object>} Created row response.
    */
   addData: async (tableName, newData) => {
     const uri = `${tableApiUrl}/rows/${tableName}`;
@@ -80,8 +98,10 @@ const ApiService = {
   },
 
   /**
-   * @param {String} tableName technical name of the table
-   * @param {Object} record document to delete
+   * Deletes a row from the specified table.
+   * @param {String} tableName Technical name of the table.
+   * @param {Object} record Parameters identifying the row to delete.
+   * @returns {Promise<Object>} Delete response.
    */
   deleteData: async (tableName, record) => {
     const uri = `${tableApiUrl}/rows/${tableName}`;
@@ -94,6 +114,13 @@ const ApiService = {
     }
   },
 
+  /**
+   * Resolves a reference field value to its sys_name.
+   * @param {String} tableName Technical name of the reference table.
+   * @param {String} value Value to resolve.
+   * @param {String} reference_key Reference key name.
+   * @returns {Promise<Object>} sys_name result.
+   */
   getSysName: async (tableName, value, reference_key) => {
     const uri = `${tableApiUrl}/getSysName/${tableName}?value=${value}&reference_key=${reference_key}`;
     try {
@@ -105,6 +132,11 @@ const ApiService = {
     }
   },
 
+  /**
+   * Fetches a reference key for a sys_id.
+   * @param {String} sys_id The sys_id to resolve.
+   * @returns {Promise<Object>} Reference key result.
+   */
   getReferenceKey: async (sys_id) => {
     const uri = `${tableApiUrl}/getReferenceKey/${sys_id}`;
     try {
