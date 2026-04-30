@@ -1,19 +1,25 @@
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppBar, Toolbar, Typography, TextField, Select,   MenuItem, Box, } from "@mui/material";
 
 const SimpleListToolbar = (props) => {
   const { table, columns, onFilterChange } = props;
   const [toolbarSearchValue, settoolbarSearchValue] = useState("");
-    const [toolbarSearchField, setToolbarSearchField] = useState(columns && columns.length > 0 ? columns[0].element : "name");
+  const [toolbarSearchField, setToolbarSearchField] = useState(columns && columns.length > 0 ? columns[0].element : "");
 
-    const handleToolbarSearchFieldChange = (event) => {
+  const handleToolbarSearchFieldChange = (event) => {
     setToolbarSearchField(event.target.value);
   };
 
   const handleToolbarSearchValueChange = (event) => {
     settoolbarSearchValue(event.target.value);
   };
+
+  useEffect(() => {
+    if (columns && columns.length > 0 && !columns.some((col) => col.element === toolbarSearchField)) {
+      setToolbarSearchField(columns[0].element);
+    }
+  }, [columns, toolbarSearchField]);
 
   const handleKeyPress = (event) => {
     if (event.key === 'Enter') {

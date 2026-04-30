@@ -121,9 +121,9 @@ const EnhancedTableHead = (props) => {
             }}
           />
         </TableCell>
-        {columns.map((c) => (
+        {columns.map((c, i) => (
           <TableCell
-            key={`table-head-label-${c.sys_id}`}
+            key={`table-head-label-${c.sys_id}_${i}`}
             sortDirection={orderBy === c.element ? order : false}
           >
             <TableSortLabel
@@ -131,14 +131,14 @@ const EnhancedTableHead = (props) => {
               direction={orderBy === c.element ? order : "asc"}
               onClick={createSortHandler(c.element)}
               sx={{ fontSize: "11pt", fontWeight: "600" }}
-              key={`table-head-sort-label-${c.sys_id}`}
+              key={`table-head-sort-label-${c.sys_id}_${i}`}
             >
               {c.column_label} |{c.element}
               {orderBy === c.element ? (
                 <Box
                   component="span"
                   sx={visuallyHidden}
-                  key={`table-head-sort-span-${c.sys_id}`}
+                  key={`table-head-sort-span-${c.sys_id}_${i}`}
                 >
                   {order === "desc" ? "sorted descending" : "sorted ascending"}
                 </Box>
@@ -156,12 +156,12 @@ const EnhancedTableHead = (props) => {
           padding="checkbox"
           key="select-all-checkbox-cell"
         ></TableCell>
-        {columns.map((c) => (
+        {columns.map((c, i) => (
           <TableCell
-            key={`local-filter-cell-${c.sys_id}`}
+            key={`local-filter-cell-${c.sys_id}_${i}`}
           >
             <TextField
-              key={`local-filter-${c.sys_id}`}
+              key={`local-filter-${c.sys_id}_${i}`}
               size="small"
               sx={{ 
                 width: "100%",

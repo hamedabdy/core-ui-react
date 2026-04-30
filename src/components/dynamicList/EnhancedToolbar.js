@@ -1,5 +1,5 @@
 import PropTypes from "prop-types"; // data type checking
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link as ReactRouterLink } from "react-router-dom";
 
 import ToolbarActions from "./ToolbarActions";
@@ -27,7 +27,7 @@ import {
 const EnhancedToolbar = (props) => {
   const { numSelected, tableName, table, columns, onFilterChange } = props;
   const [toolbarSearchValue, settoolbarSearchValue] = useState("");
-  const [toolbarSearchField, setToolbarSearchField] = useState(columns && columns.length > 0 ? columns[0].element : "name");
+  const [toolbarSearchField, setToolbarSearchField] = useState(columns && columns.length > 0 ? columns[0].element : "");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedColumns, setSelectedColumns] = useState(
     columns ? columns.map(col => col.element) : (table?.visibleColumns || [])
@@ -48,6 +48,12 @@ const EnhancedToolbar = (props) => {
   const handleToolbarSearchValueChange = (event) => {
     settoolbarSearchValue(event.target.value);
   };
+
+  useEffect(() => {
+    if (columns && columns.length > 0 && !columns.some((col) => col.element === toolbarSearchField)) {
+      setToolbarSearchField(columns[0].element);
+    }
+  }, [columns, toolbarSearchField]);
 
   const handleKeyPress = (event) => {
     if (event.key === 'Enter') {
