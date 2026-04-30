@@ -183,7 +183,7 @@ const EnhancedTableBody = (props) => {
             </TableCell>
             {columns.map((c, i) => {
               const cellValue = row[c.element];
-              let displayContent = cellValue;
+              let displayContent = cellValue !== null && cellValue !== undefined ? String(cellValue) : '';
 
               if (c.reference && cellValue) { // If it's a reference column and has a value
                 if (referenceDisplayNames[cellValue] && referenceDisplayNames[cellValue][c.element]) {
