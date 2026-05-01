@@ -115,19 +115,19 @@ const ApiService = {
   },
 
   /**
-   * Resolves a reference field value to its sys_name.
+   * Resolves a reference field value to its configured display value.
    * @param {String} tableName Technical name of the reference table.
    * @param {String} value Value to resolve.
    * @param {String} reference_key Reference key name.
-   * @returns {Promise<Object>} sys_name result.
+   * @returns {Promise<Object>} display value result.
    */
-  getSysName: async (tableName, value, reference_key) => {
-    const uri = `${tableApiUrl}/getSysName/${tableName}?value=${value}&reference_key=${reference_key}`;
+  getDisplayValue: async (tableName, value, reference_key) => {
+    const uri = `${tableApiUrl}/getDisplayValue/${tableName}?value=${value}&reference_key=${reference_key}`;
     try {
       const response = await axios.get(uri);
       return response.data;
     } catch (error) {
-      console.error("Error fetching sys_name:", error);
+      console.error("Error fetching display value:", error);
       throw error;
     }
   },
