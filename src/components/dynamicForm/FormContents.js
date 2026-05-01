@@ -12,8 +12,6 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
     if (c.internal_type === 'reference') {
       return (
         <ReferenceField
-          name={c.element}
-          label={c.column_label}
           value={formData[c.element]}
           onChange={(e) => {
             handleInputChange(c.element, e.target.value);
