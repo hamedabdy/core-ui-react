@@ -25,8 +25,6 @@ const StyledDialog = styled(Dialog)(({ theme }) => ({
 }));
 
 const ReferenceField = ({
-  name,
-  label,
   value,
   onChange,
   column,
@@ -45,32 +43,36 @@ const ReferenceField = ({
   const [referenceKey, setReferenceKey] = useState('sys_id'); // Default to sys_id
 
   useEffect(() => {
-    const fetchReferenceKeyAndSysName = async () => {
-      if (column.reference) {
+    const fetchReferenceKeyAndDisplayValue = async () => {
+      if (!column.reference) return;
+
+      let key = referenceKey;
+      if (column.sys_id) {
         try {
           const keyResponse = await ApiService.getReferenceKey(column.sys_id);
-          
-          if (keyResponse.status === "success" && keyResponse.data)
-            setReferenceKey(keyResponse.data);
-          
+          console.log(`[ReferenceField] Fetched reference key for column ${column.element}:`, keyResponse);
+          if (keyResponse.status === "success" && keyResponse.data) {
+            key = keyResponse.data;
+            setReferenceKey(key);
+          }
         } catch (error) {
           console.error(`[ReferenceField] Error fetching reference key for column ${column.element}:`, error);
         }
-
-        if (value) {
-          try {
-            const response = await ApiService.getSysName(column.reference, value, referenceKey);
-            if (response.status === "success" && response.data)
-              setDisplayValue(response.data);
-          } catch (error) {
-            console.error(`[ReferenceField] Error fetching sys_name for table ${column.reference}, value ${value}:`, error);
-          }
-        }
       }
 
+      if (value) {
+        try {
+          const response = await ApiService.getDisplayValue(column.reference, value, key);
+          if (response.status === "success" && response.data) {
+            setDisplayValue(response.data);
+          }
+        } catch (error) {
+          console.error(`[ReferenceField] Error fetching display value for table ${column.reference}, value ${value}:`, error);
+        }
+      }
     };
 
-    fetchReferenceKeyAndSysName();
+    fetchReferenceKeyAndDisplayValue();
   }, [value, column.reference]); // Re-run when value or reference table changes
   
   // Handle opening and closing of the record selector dialog
@@ -103,7 +105,7 @@ const ReferenceField = ({
   return (
     <Box sx={{ display: 'flex', alignItems: 'center' }}>
       <TextField
-        name={name}
+        name={column.element}
         value={displayValue}
         onChange={(e) => setDisplayValue(e.target.value)}
         error={error}
