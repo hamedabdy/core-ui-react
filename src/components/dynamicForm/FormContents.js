@@ -4,11 +4,9 @@ import ReferenceField from "./ReferenceField";
 import EnhancedCheckBox from "../dynamicForm/EnhancedCheckboxes";
 
 const FormContents = ({ c, formData, setFormData, handleInputChange, error, setError }) => {
-
-  const [checkboxes, setCheckboxes] = useState({});
   
   // Ensure c.mandatory is properly handled
-  const isMandatory = c.mandatory === false;
+  const isMandatory = c.mandatory;
   const renderField = () => {
     
     if (c.internal_type === 'reference') {
@@ -34,9 +32,7 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
       return (
         <EnhancedCheckBox
           c={c}
-          checkboxes={checkboxes}
           formData={formData}
-          setCheckboxes={setCheckboxes}
           setFormData={setFormData}
         />
       );
