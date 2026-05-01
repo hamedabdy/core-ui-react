@@ -226,3 +226,15 @@ const ReferenceField = ({
 };
 
 export default ReferenceField;
+
+
+
+/**
+ * TODOs:
+ * - reference field suggestion dropdown when user types in the reference field (similar to ServiceNow's reference fields)
+ * - dropdown should show matching records from the reference table based on the user's input, and allow them to select one to populate the field
+ * - dropdown should show the most recent users selections at the top, and also allow searching by sys_name or other display value
+ * - consider implementing a caching mechanism to store recently fetched reference records to improve performance and reduce API calls
+ * - ensure that the component is accessible and works well with keyboard navigation and screen readers
+ * - edge case management: handle cases where the reference record has been deleted or is otherwise unavailable, only show sys_id if no display value can be found, etc.
+ */
