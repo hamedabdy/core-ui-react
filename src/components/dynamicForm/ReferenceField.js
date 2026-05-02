@@ -50,7 +50,6 @@ const ReferenceField = ({
       if (column.sys_id) {
         try {
           const keyResponse = await ApiService.getReferenceKey(column.sys_id);
-          console.log(`[ReferenceField] Fetched reference key for column ${column.element}:`, keyResponse);
           if (keyResponse.status === "success" && keyResponse.data) {
             key = keyResponse.data;
             setReferenceKey(key);
@@ -83,7 +82,7 @@ const ReferenceField = ({
 
     // Create a reference value object containing both display and technical data
     const referenceValue = {
-      display: selectedItem.sys_name,
+      display: selectedItem[column.display] || selectedItem.sys_name || selectedValue,
       value: selectedValue,
       table: column.reference,
       reference: `${column.name}.${column.element}`
@@ -92,7 +91,7 @@ const ReferenceField = ({
     // Update the field value with the determined value (sys_id or other attribute)
     onChange({
       target: {
-        name,
+        name : column.element,
         value: referenceValue.value
       }
     });

@@ -1,4 +1,3 @@
-// services/ApiService.js
 import axios from "axios";
 
 const tableApiUrl = process.env.REACT_APP_API_URL; // using relative path via reverse proxy
