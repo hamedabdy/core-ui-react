@@ -1,7 +1,8 @@
-import {useState} from "react";
 import { Grid, Typography, TextField } from "@mui/material";
 import ReferenceField from "./ReferenceField";
-import EnhancedCheckBox from "../dynamicForm/EnhancedCheckboxes";
+import EnhancedCheckBox from "./EnhancedCheckboxes";
+import MultilineTextField from "./MultilineTextField";
+import ScriptEditor from "./ScriptEditor";
 
 const FormContents = ({ c, formData, setFormData, handleInputChange, error, setError }) => {
   
@@ -32,6 +33,32 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
           c={c}
           formData={formData}
           setFormData={setFormData}
+        />
+      );
+    }
+
+    if (c.internal_type === "text") {
+      return (
+        <MultilineTextField
+          c={c}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          error={error}
+          setError={setError}
+          isMandatory={isMandatory}
+        />
+      );
+    }
+
+    if (c.internal_type === "script") {
+      return (
+        <ScriptEditor
+          c={c}
+          formData={formData}
+          handleInputChange={handleInputChange}
+          error={error}
+          setError={setError}
+          isMandatory={isMandatory}
         />
       );
     }
