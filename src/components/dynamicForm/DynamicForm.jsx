@@ -2,11 +2,6 @@ import {useState, useEffect, } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Paper, Typography, Grid, Box } from "@mui/material";
 
-// Styles
-// import Autocomplete from "@mui/material/Autocomplete";
-// import FormControlLabel from "@mui/material/FormControlLabel";
-// import LinearProgress from "@mui/material/LinearProgress";
-
 // Import Local Components
 import ApiService from "../../services/ApiService";
 import PageHeader from "./PageHeader";
@@ -86,18 +81,6 @@ const DynamicForm = () => {
       [columnName]: value,
     }));
   };
-
-  // const checkTableNameExists = async (name) => {
-  //   try {
-  //     const response = await ApiService.getTable(name);
-  //     if (response.status === "success" && response.data != null) return true;
-  //     return false;
-  //   } catch (error) {
-  //     console.error("Error checking table name:", error);
-  //     setErrorMessage("Error checking table name:", error);
-  //     return false;
-  //   }
-  // };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
