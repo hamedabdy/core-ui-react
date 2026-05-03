@@ -122,7 +122,7 @@ const EnhancedTableBody = (props) => {
             // Only fetch if not already fetched for this row and column
             if (!referenceDisplayNames[value] || !referenceDisplayNames[value][col.element]) {
               try {
-                const response = await ApiService.getDisplayValueFromSysId(tableName, value, col.reference_key || referenceKey);
+                const response = await ApiService.getDisplayValue(tableName, value, col.reference_key || referenceKey);
                 if (response.status === "success" && response.data) {
                   if (!newDisplayNames[value]) newDisplayNames[value] = {};
                   newDisplayNames[value][col.element] = response.data;
