@@ -8,11 +8,11 @@ import {Box, TableContainer, Table, Paper, TablePagination} from "@mui/material"
 // IMPORT LOCAL COMPONENTS
 import ApiService from "../../services/ApiService";
 import { loadListColumnPref, saveListColumnPref } from "../../services/userPreferenceService";
-import EnhancedToolbar from "../dynamicList/EnhancedToolbar";
-import QueryFilter from "../dynamicList/QueryFilter";
-import EnhancedTableHead from "../dynamicList/EnhancedTableHead";
-import EnhancedTableBody from "../dynamicList/EnhancedTableBody";
-import TablePaginationActions from "../dynamicList/EnhancedTablePagination";
+import EnhancedToolbar from "./EnhancedToolbar";
+import QueryFilter from "./QueryFilter";
+import EnhancedTableHead from "./EnhancedTableHead";
+import EnhancedTableBody from "./EnhancedTableBody";
+import TablePaginationActions from "./EnhancedTablePagination";
 import Utils from "./Utils";
 
 const DynamicList = () => {
