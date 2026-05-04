@@ -96,7 +96,7 @@ const ApiService = {
     }
   },
 
-  // Interim if PATCH not yet supported on backend:
+  // TODO : Interim if PATCH not yet supported on backend:
   updateData: async (tableName, sysId, patchData) => {
     return ApiService.addData(tableName, { ...patchData, sys_id: sysId });
   },
