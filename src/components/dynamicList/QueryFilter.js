@@ -1,18 +1,10 @@
 import { useState } from "react";
+import { Box,  Button, Grid, IconButton, Tooltip, TextField} from "@mui/material";
+import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
+import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 
 import ApiService from "../../services/ApiService";
 import OperatorSelect from "./OperatorSelect";
-
-// Styles
-import Button from "@mui/material/Button";
-// import Paper from "@mui/material/Paper";
-import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import TextField from "@mui/material/TextField";
-import FilterAltOutlinedIcon from "@mui/icons-material/FilterAltOutlined";
-import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
-import { Box } from "@mui/material";
 
 const QueryFilter = (props) => {
   const { tableName, setData } = props;

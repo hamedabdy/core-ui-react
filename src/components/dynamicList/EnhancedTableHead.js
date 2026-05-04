@@ -2,22 +2,13 @@ import PropTypes from "prop-types"; // data type checking
 import { useState } from "react";
 
 // Styles
-import Box from "@mui/material/Box";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TableCell from "@mui/material/TableCell";
-import TableSortLabel from "@mui/material/TableSortLabel";
-import Checkbox from "@mui/material/Checkbox";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
-import TextField from "@mui/material/TextField";
+import {Box, TableHead, TableRow, TableCell, TableSortLabel, Checkbox, IconButton, Tooltip, TextField} from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 
 const EnhancedTableHead = (props) => {
   const {
     columns,
-    // visibleRows,
     onSelectAllClick,
     order,
     orderBy,
@@ -103,7 +94,7 @@ const EnhancedTableHead = (props) => {
     <TableHead sx={{ "& .MuiTableCell-head": { backgroundColor: "#f5f5f5", borderBottom: 1, borderColor: "#ccc"}, }}>
       <TableRow>
         <TableCell padding="checkbox">
-          <Tooltip aria-label="Search list">
+          <Tooltip aria-label="Search list" title="Search list">
             <IconButton onClick={handleLocalFilter}>
               <SearchOutlinedIcon />
             </IconButton>

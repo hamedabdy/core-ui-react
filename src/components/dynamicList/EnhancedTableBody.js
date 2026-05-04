@@ -1,23 +1,17 @@
 import PropTypes from "prop-types"; // data type checking
 import React, { useState, useEffect } from "react";
 import { Link as ReactRouterLink } from "react-router-dom";
+import {Box, Link, TableRow, TableCell, TableBody, Checkbox, IconButton, Tooltip, } from "@mui/material";
 
 // Styles
-import Box from "@mui/material/Box";
-import ApiService from "../../services/ApiService";
-import Link from "@mui/material/Link";
-import TableRow from "@mui/material/TableRow";
-import TableCell from "@mui/material/TableCell";
-import TableBody from "@mui/material/TableBody";
-import Checkbox from "@mui/material/Checkbox";
-import IconButton from "@mui/material/IconButton";
-import Tooltip from "@mui/material/Tooltip";
 import { useTheme } from "@mui/material/styles";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
+
+import ApiService from "../../services/ApiService";
 
 function TablePaginationActions(props) {
   const theme = useTheme();
@@ -219,8 +213,7 @@ const EnhancedTableBody = (props) => {
         );
       })}
       {emptyRows > 0 && (
-        <TableRow
-          style={{height: 33 * emptyRows,}}>
+        <TableRow key="empty-rows" style={{height: 33 * emptyRows,}}>
           <TableCell colSpan={6} />
         </TableRow>
       )}

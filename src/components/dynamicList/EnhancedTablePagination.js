@@ -1,8 +1,7 @@
 import PropTypes from "prop-types"; // data type checking
+import {Box, IconButton} from "@mui/material";
 
 // Styles
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
 import { useTheme } from "@mui/material/styles";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import FirstPageIcon from "@mui/icons-material/FirstPage";
