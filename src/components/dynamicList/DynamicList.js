@@ -2,19 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 
-import ApiService from "../../services/ApiService";
-
 // Styles
-import Box from "@mui/material/Box";
-import TableContainer from "@mui/material/TableContainer";
-import Table from "@mui/material/Table";
-import Paper from "@mui/material/Paper";
-// import CircularProgress from "@mui/material/CircularProgress";
-import TablePagination from "@mui/material/TablePagination";
-// import FormControlLabel from "@mui/material/FormControlLabel";
-// import Switch from "@mui/material/Switch";
+import {Box, TableContainer, Table, Paper, TablePagination} from "@mui/material";
 
 // IMPORT LOCAL COMPONENTS
+import ApiService from "../../services/ApiService";
+import { loadListColumnPref, saveListColumnPref } from "../../services/userPreferenceService";
 import EnhancedToolbar from "../dynamicList/EnhancedToolbar";
 import QueryFilter from "../dynamicList/QueryFilter";
 import EnhancedTableHead from "../dynamicList/EnhancedTableHead";
@@ -38,48 +31,78 @@ const DynamicList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(100);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const getData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const cols = await ApiService.getColumns(tableName);
-        setColumns(cols.data.rows);
-        // Always fetch data with sysparm_fields if present
-        const resp = await ApiService.getData({
-          table_name: tableName,
-          sysparm_query: sysparmQuery,
-          sysparm_fields: sysparmFields
-        });
-        setData(resp.data);
-        const tableInfo = await ApiService.getTable(tableName);
-        setTable(tableInfo.data);
-      } catch (error) {
-        setError(`Error loading data: ${error.message}`);
-        console.log("Error in DynamicList: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
   // Add state for visible columns (elements)
   const [visibleColumnElements, setVisibleColumnElements] = useState([]);
-  // When columns are loaded, set all as visible by default or from sysparm_fields
-  useEffect(() => {
-    if (columns && columns.length > 0) {
-      if (sysparmFields) {
-        setVisibleColumnElements(sysparmFields.split(",").filter(Boolean));
-      } else {
-        setVisibleColumnElements(columns.map(col => col.element));
-      }
-    }
-  }, [columns, sysparmFields]);
 
-  // Fetch columns and data from server, using sysparm_fields if present
+  // Fetches only the row data — called when fields/query change
+const fetchData = async () => {
+  try {
+    setLoading(true);
+    setError(null);
+    const resp = await ApiService.getData({
+      table_name:     tableName,
+      sysparm_query:  sysparmQuery,
+      sysparm_fields: sysparmFields,
+    });
+    setData(resp.data);
+  } catch (error) {
+    setError(`Error loading data: ${error.message}`);
+    console.error("Error fetching data:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+// Loads columns + preference — called only on first load / table change
+  const initColumns = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [colsResp, tableInfo, pref] = await Promise.all([
+        ApiService.getColumns(tableName),
+        ApiService.getTable(tableName),
+        loadListColumnPref(tableName),
+      ]);
+
+      const allColumns = colsResp.data.rows;
+      setColumns(allColumns);
+      setTable(tableInfo.data);
+
+      // Apply preference or default to all columns
+      if (pref?.columns?.length) {
+        const valid = pref.columns.filter(el => allColumns.some(c => c.element === el));
+        if (valid.length) {
+          setVisibleColumnElements(valid);
+          setSysparmFields(valid.join(","));
+          return;
+        }
+      }
+      // No preference — show all columns
+      const allElements = allColumns.map(col => col.element);
+      setVisibleColumnElements(allElements);
+      setSysparmFields(allElements.join(","));
+
+    } catch (error) {
+      setError(`Error loading columns: ${error.message}`);
+      console.error("Error in initColumns:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Effect 1: Fetch data when table, query OR visible fields change ──────────
   useEffect(() => {
-    getData();
+    fetchData();
     // eslint-disable-next-line
   }, [tableName, sysparmQuery, sysparmFields]);
+
+  
+  // ── Effect 2: Init columns + preference ONLY on table change (first load) ────
+  useEffect(() => {
+    initColumns();
+    // eslint-disable-next-line
+  }, [tableName]);
 
   const handleFilterChange = (query) => {
     setSysparmQuery(query);
@@ -132,15 +155,23 @@ const DynamicList = () => {
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
   // Handler for column selection from EnhancedToolbar
-  const handleColumnsChange = (selectedElements) => {
+  const handleColumnsChange = async (selectedElements) => {
+    // Update UI state
     setVisibleColumnElements(selectedElements);
-    // Update sysparm_fields in URL and state
     const newSysparmFields = selectedElements.join(",");
     setSysparmFields(newSysparmFields);
-    // Update URL
+
+    // Update URL (for bookmarking/sharing)
     const params = new URLSearchParams(window.location.search);
     params.set("sysparm_fields", newSysparmFields);
     navigate({ search: params.toString() }, { replace: true });
+
+    // Persist preference — fire and forget
+    try {
+      await saveListColumnPref(tableName, selectedElements);
+    } catch (err) {
+      console.error("[DynamicList] Failed to save column preference:", err);
+    }
   };
 
   // Only show columns and data for selected columns, preserving order from visibleColumnElements
@@ -180,6 +211,7 @@ const DynamicList = () => {
           table={table}
           onColumnsChange={handleColumnsChange}
           onFilterChange={handleFilterChange}
+          visibleColumnElements={visibleColumnElements}
         />
         <QueryFilter tableName={tableName} setData={setData} />
         <TableContainer

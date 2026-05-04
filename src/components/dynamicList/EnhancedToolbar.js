@@ -2,14 +2,14 @@ import PropTypes from "prop-types"; // data type checking
 import { useState, useEffect } from "react";
 import { Link as ReactRouterLink } from "react-router-dom";
 
-import ToolbarActions from "./ToolbarActions";
-import ListSettings from "./ListSettings";
-
 // Styles
 import { alpha } from "@mui/material/styles";
 import ArrowLeftIcon from '@mui/icons-material/ArrowBackIosNew';
 import MenuIcon from '@mui/icons-material/Menu';
 import SettingsIcon from '@mui/icons-material/Settings';
+
+import ToolbarActions from "./ToolbarActions";
+import ListSettings from "./ListSettings";
 
 import {
   AppBar,
@@ -25,13 +25,12 @@ import {
 } from "@mui/material";
 
 const EnhancedToolbar = (props) => {
-  const { numSelected, tableName, table, columns, onFilterChange } = props;
+  const { numSelected, tableName, table, columns, onFilterChange, visibleColumnElements } = props;
   const [toolbarSearchValue, settoolbarSearchValue] = useState("");
   const [toolbarSearchField, setToolbarSearchField] = useState(columns && columns.length > 0 ? columns[0].element : "");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedColumns, setSelectedColumns] = useState(
-    columns ? columns.map(col => col.element) : (table?.visibleColumns || [])
-  );
+  // Initialize from visibleColumnElements prop (set by DynamicList after pref is loaded)
+  const [selectedColumns, setSelectedColumns] = useState([]);
 
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
@@ -48,6 +47,15 @@ const EnhancedToolbar = (props) => {
   const handleToolbarSearchValueChange = (event) => {
     settoolbarSearchValue(event.target.value);
   };
+
+  // Sync when DynamicList updates visibleColumnElements (after pref load or columns change)
+  useEffect(() => {
+    if (visibleColumnElements?.length) {
+      setSelectedColumns(visibleColumnElements);
+    } else if (columns?.length) {
+      setSelectedColumns(columns.map(col => col.element));
+    }
+  }, [visibleColumnElements, columns]);
 
   useEffect(() => {
     if (columns && columns.length > 0 && !columns.some((col) => col.element === toolbarSearchField)) {
@@ -184,6 +192,7 @@ const EnhancedToolbar = (props) => {
           onOk={handleDialogOk}
           columns={columns}
           selectedColumns={selectedColumns}
+          tableName={tableName}
         />
       </Toolbar>
     </AppBar>
@@ -267,6 +276,7 @@ ToolbarSearch.propTypes = {
   toolbarSearchValue: PropTypes.string.isRequired,
   handleToolbarSearchValueChange: PropTypes.func.isRequired,
   handleKeyPress: PropTypes.func.isRequired,
+  visibleColumnElements: PropTypes.array,
 };
 
 export default EnhancedToolbar;
