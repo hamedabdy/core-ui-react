@@ -96,6 +96,11 @@ const ApiService = {
     }
   },
 
+  // Interim if PATCH not yet supported on backend:
+  updateData: async (tableName, sysId, patchData) => {
+    return ApiService.addData(tableName, { ...patchData, sys_id: sysId });
+  },
+
   /**
    * Deletes a row from the specified table.
    * @param {String} tableName Technical name of the table.
