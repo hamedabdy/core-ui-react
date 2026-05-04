@@ -1,6 +1,6 @@
 import {useState, useEffect, } from "react";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
-import { Paper, Typography, Grid, Box } from "@mui/material";
+import { Paper, Typography, Grid, Box, Button } from "@mui/material";
 
 // Import Local Components
 import ApiService from "../../services/ApiService";
@@ -21,7 +21,7 @@ const DynamicForm = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
-    console.log("DynForm - Start of useEffet !");
+    console.debug("DynForm - Start of useEffet !");
 
     const loadPage = async () => {
       try {
@@ -32,16 +32,16 @@ const DynamicForm = () => {
           setTable(table.data);
 
           if (sysID && sysID !== "-1") {
-            const resp = await ApiService.getData({
-              table_name: tableName,
-              sys_id: sysID,
-            });
-            setFormData(resp.data.pop());
+            const resp = await ApiService.getData({table_name: tableName, sys_id: sysID});
+            const record = resp.data?.pop();
+            if (!record)
+              throw new Error("Record not found");
+            setFormData(record);
           }
         }
       } catch (error) {
         console.error("Error loading page:", error);
-        setErrorMessage("Failed to fetch record");
+        setErrorMessage(error.message || "Error loading page");
       }
     };
 
@@ -49,7 +49,7 @@ const DynamicForm = () => {
 
     if (reloadData) setReloadData(false);
     return () => {
-      console.log("DynForm - component is unmounting");
+      console.debug("DynForm - component is unmounting");
     };
     // eslint-disable-next-line
   }, [tableName, sysID, reloadData]);
@@ -97,7 +97,7 @@ const DynamicForm = () => {
       }
     } catch (error) {
       console.error("Error inserting row:", error);
-      setErrorMessage("Error inserting row:", error);
+      setErrorMessage(error.message || "Error inserting row.");
     }
   };
 
@@ -133,6 +133,22 @@ const DynamicForm = () => {
       setErrorMessage(error.response?.data?.message || "Error deleting record: " + error.message);
     }
   };
+
+  if (errorMessage === "Record not found") {
+  return (
+    <Paper elevation={0} sx={{ padding: 4, textAlign: "center", marginTop: 8 }}>
+      <Typography variant="h5" color="text.secondary" gutterBottom>
+        Record Not Found
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        The record with sys_id <strong>{sysID}</strong> does not exist in <strong>{tableName}</strong>.
+      </Typography>
+      <Button variant="outlined" onClick={() => navigate(`../${tableName}.list`)}>
+        Back to List
+      </Button>
+    </Paper>
+  );
+}
 
   return (
     <Paper

@@ -5,6 +5,7 @@ import MultilineTextField from "./MultilineTextField";
 import ScriptEditor from "./ScriptEditor";
 
 const FormContents = ({ c, formData, setFormData, handleInputChange, error, setError }) => {
+  if (!formData) return null;
   
   // Ensure c.mandatory is properly handled
   const isMandatory = c.mandatory;
