@@ -3,6 +3,17 @@ import PropTypes from 'prop-types';
 import ApiService from '../services/ApiService';
 import './SidePanel.css';
 
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ListSubheader from '@mui/material/ListSubheader';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+
 /**
  * SidePanel Component (formerly Navigator)
  * 
@@ -186,6 +197,8 @@ export default function SidePanel({
   const filteredCategories = filterCategories();
   const hasNoResults = searchValue.trim() && filteredCategories.length === 0;
 
+  const react_id = React.useId();
+
   return (
     <>
       {/* Backdrop (mobile only) */}
@@ -236,7 +249,7 @@ export default function SidePanel({
         </div>
 
         {/* Menu Content */}
-        <nav className="sidepanel__content" aria-label="Navigation items">
+        <nav aria-label="Navigation items">
           {loading ? (
             <div className="sidepanel__loading">
               <span className="sidepanel__spinner"></span>
@@ -258,30 +271,34 @@ export default function SidePanel({
               <p>No results found for "{searchValue}"</p>
             </div>
           ) : (
-            <ul className="sidepanel__list">
+            <List component="nav" aria-labelledby="sidepanel-menu">
               {filteredCategories.map((category) => (
-                <li key={category.sys_id} className="sidepanel__category">
-                  <div className="sidepanel__category-header">
-                    {category.id}
-                  </div>
-                  <ul className="sidepanel__submenu">
-                    {category.children.map((child, index) => (
-                      <li key={child.sys_id} className="sidepanel__item">
-                        <button
-                          ref={index === 0 ? firstMenuItemRef : null}
-                          className="sidepanel__item-button"
-                          onClick={() => handleMenuItemClick(child.link)}
-                          type="button"
-                          role="menuitem"
-                        >
-                          {child.id}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
+                <Accordion key={category.sys_id}  defaultExpanded>
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls={`${react_id}-panel1-content`}
+                    id={`${react_id}-panel1-header`}
+                  >
+                    <Typography component="span">{category.id}</Typography>
+                  </AccordionSummary>
+                  
+                    <List component="div" disablePadding>
+                      {category.children.map((child, index) => (
+                        <ListItem key={child.sys_id} disablePadding>
+                          <ListItemButton
+                            ref={index === 0 ? firstMenuItemRef : null}
+                            onClick={() => handleMenuItemClick(child.link)}
+                            role="menuitem"
+                          >
+                            {child.id}
+                          </ListItemButton>
+                        </ListItem>
+                      ))}
+                    </List>
+                  
+                </Accordion>
               ))}
-            </ul>
+            </List>
           )}
         </nav>
       </aside>
