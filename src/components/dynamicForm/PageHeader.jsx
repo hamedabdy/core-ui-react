@@ -23,7 +23,9 @@ const StyledAppBar = styled(AppBar)({
 });
 
 const PageHeader = (props) => {
-  const { table, sysID, formData, insertAndStay, handleDelete } = props;
+  const { table, sysID, formData, insertAndStay, handleDelete, onFormLayoutClick } = props;
+  const safeTableName = table?.name || "";
+  const safeTableLabel = table?.label || "Loading...";
 
   return (
     <Paper elevation={1}>
@@ -33,7 +35,7 @@ const PageHeader = (props) => {
             <Tooltip aria-label="Go back">
               <IconButton
                 component={ReactRouterLink}
-                to={`../${table.name}.list`}
+                to={safeTableName ? `../${safeTableName}.list` : ".."}
                 sx={{
                   mr: 1,
                   backgroundColor: "#E9E9E9", // light grey
@@ -49,14 +51,16 @@ const PageHeader = (props) => {
                 <ArrowLeftIcon fontSize="small" />
               </IconButton>
             </Tooltip>
-            <HeaderMenu tableName={table.name} />
+            {safeTableName && (
+              <HeaderMenu tableName={safeTableName} onFormLayoutClick={onFormLayoutClick} />
+            )}
           </Box>
           <Box sx={{ flexGrow: 1, ml: 1 }}>
             <Typography
               variant="h7"
               sx={{ fontWeight: "bold", mb: 0, lineHeight: 1 }}
             >
-              {table.label}
+              {safeTableLabel}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: "bold", mt: 0, lineHeight: 1 }}>
               {(!sysID || sysID === "-1" || sysID === "")
@@ -70,7 +74,7 @@ const PageHeader = (props) => {
           />
         </Toolbar>
       </StyledAppBar>
-      <Paper elevation={-1} sx={{ borderRadius: 0, p: 1 }}>
+      <Paper elevation={0} sx={{ borderRadius: 0, p: 1 }}>
         Related records {/* TODO */}
       </Paper>
     </Paper>

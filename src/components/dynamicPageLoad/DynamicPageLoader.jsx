@@ -77,14 +77,16 @@ export default function DynamicPageLoader({ pageName }) {
           sysparm_fields:  'name,script_compiled', // Only fetch what we need
         });
         
-        const rows = result.data;
+        const rows = Array.isArray(result?.data)
+          ? result.data
+          : (Array.isArray(result?.data?.data) ? result.data.data : []);
 
         // Validate the response
         if (rows.length === 0) {
           throw new Error(`Page "${pageName}" was not found in sys_ui_page.`);
         }
 
-        const record = rows.pop(); // Get the first (and should be only) record
+        const record = rows[rows.length - 1];
 
         if (!record.script_compiled) {
           throw new Error(

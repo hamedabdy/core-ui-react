@@ -8,7 +8,13 @@ const PageFooter = (props) => {
   const { insertAndStay, handleDelete } = props;
 
   return (
-    <Box sx={{ marginTop: "30px" }} key={"box-buttons-bottom"}>
+    <Box
+      sx={{
+        marginTop: "10px",
+        width: '100%',
+      }}
+      key={"box-buttons-bottom"}
+    >
       <FormButtons insertAndStay={insertAndStay} handleDelete={handleDelete} />
     </Box>
   );

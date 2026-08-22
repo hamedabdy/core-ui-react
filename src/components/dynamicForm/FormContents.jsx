@@ -66,7 +66,6 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
 
     return (
       <TextField
-        fullWidth
         id={`form-textfield-${c.sys_id}`}
         name={c.element}
         value={formData[c.element] || ""}
@@ -78,18 +77,35 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
           if (e.target.value) setError(false);
         }}
         size="small"
+        sx={{ width: '80%', '& .MuiInputBase-input': { fontSize: 13, padding: '6px 10px' } }}
       />
     );
   };
 
+  // For script fields we want the label above the input to maximize editor space
+  if (c.internal_type === "script") {
+    return (
+      <Grid container direction="column" sx={{ mb: 2 }}>
+        <Grid item>
+          <Typography sx={{ fontSize: 14, color: 'text.primary', mb: 1 }}>
+            {c.column_label}
+          </Typography>
+        </Grid>
+        <Grid item>
+          {renderField()}
+        </Grid>
+      </Grid>
+    );
+  }
+
   return (
-    <Grid container alignItems="center">
-      <Grid item xs={4} key={`grid-label-${c.sys_id}`}>
-        <Typography>
-          {c.column_label} | {c.element}
+    <Grid container alignItems="center" sx={{ mb: 1 }}>
+      <Grid item xs={3} key={`grid-label-${c.sys_id}`}>
+        <Typography sx={{ fontSize: 14, color: 'text.primary', textAlign: 'right', mr: 1 }}>
+          {c.column_label}
         </Typography>
       </Grid>
-      <Grid item xs={6} key={`grid-field-${c.sys_id}`}>
+      <Grid item xs={9} key={`grid-field-${c.sys_id}`}>
         {renderField()}
       </Grid>
     </Grid>

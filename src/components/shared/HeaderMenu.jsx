@@ -22,7 +22,8 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
  * The component receives the current `tableName` as a prop and builds the URLs
  * dynamically.
  */
-const HeaderMenu = ({ tableName }) => {
+const HeaderMenu = ({ tableName, onFormLayoutClick }) => {
+  const safeTableName = tableName || "";
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const handleOpen = (event) => {
@@ -110,24 +111,32 @@ const HeaderMenu = ({ tableName }) => {
       >
         <MenuItem
           onClick={() =>
-            navigate(`./sys_db_object.list?sysparm_query=name=${tableName}`)
+            safeTableName && navigate(`./sys_db_object.list?sysparm_query=name=${safeTableName}`)
           }
         >
           Table
         </MenuItem>
         <MenuItem
           onClick={() =>
-            navigate(`./sys_dictionary.list?sysparm_query=name=${tableName}`)
+            safeTableName && navigate(`./sys_dictionary.list?sysparm_query=name=${safeTableName}`)
           }
         >
           Dictionary
         </MenuItem>
         <MenuItem
           onClick={() =>
-            navigate(`./sys_script.list?sysparm_query=collection=${tableName}`)
+            safeTableName && navigate(`./sys_script.list?sysparm_query=collection=${safeTableName}`)
           }
         >
           Business Rules
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            handleClose();
+            onFormLayoutClick();
+          }}
+        >
+          Form Layout
         </MenuItem>
       </Menu>
     </>
@@ -136,7 +145,7 @@ const HeaderMenu = ({ tableName }) => {
 
 HeaderMenu.propTypes = {
   /** Name of the current table – used to build the redirect URLs */
-  tableName: PropTypes.string.isRequired,
+  tableName: PropTypes.string,
 };
 
 export default HeaderMenu;

@@ -32,8 +32,11 @@ const SimpleForm = ({ tableName, sysId }) => {
           setTable(table.data);
 
           if (sysId && sysId !== "-1") {
-            const resp = await ApiService.getData({table_name: tableName, sys_id: sysId,});
-            setFormData(resp.data.pop());
+            const resp = await ApiService.getData({ table_name: tableName, sys_id: sysId });
+            const payload = Array.isArray(resp?.data) ? resp.data : (Array.isArray(resp?.data?.data) ? resp.data.data : [resp?.data?.data ?? resp?.data]);
+            const record = payload[0];
+            if (!record) throw new Error("Record not found");
+            setFormData(record);
           }
         }
       } catch (err) {

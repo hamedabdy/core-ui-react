@@ -113,6 +113,7 @@ const ReferenceField = ({
         disabled={disabled}
         fullWidth={fullWidth}
         size={size}
+        sx={{ width: fullWidth ? '80%' : 'auto', '& .MuiInputBase-input': { fontSize: 13, padding: '6px 10px' } }}
         type="search"
         inputProps={{
           'data-type': 'reference_input',

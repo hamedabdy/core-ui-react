@@ -61,7 +61,7 @@ const FormButtons = (props) => {
   //   };
 
   return (
-    <Stack direction="row" spacing={2} sx={{ ml: 1}}>
+    <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
       <Button type="submit" variant="contained" disableElevation 
       sx={{ minWidth: 40, minHeight: 32, pl: 1, pr: 1, pt: 0.5, pb: 0.5, fontSize: "0.75rem" }}>
         Save

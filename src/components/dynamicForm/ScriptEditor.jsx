@@ -63,13 +63,16 @@ const ScriptEditor = ({ c, formData, handleInputChange, error, setError, isManda
         }),
         EditorView.theme({
           "&": {
-            fontSize: "13px",
-            border: error ? "1px solid #d32f2f" : "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "4px",
-            minHeight: "180px",
-            maxHeight: "400px",
-          },
-          ".cm-scroller": { overflow: "auto" },
+              fontSize: "13px",
+              border: error ? "1px solid #d32f2f" : "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "4px",
+              minHeight: "180px",
+              maxHeight: "400px",
+              width: '100%'
+            },
+          ".cm-scroller": { overflow: "auto", whiteSpace: 'pre-wrap', wordBreak: 'break-word' },
+          ".cm-content": { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' },
+          ".cm-line": { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' },
           ".cm-editor.cm-focused": {
             outline: "none",
             border: error
@@ -129,6 +132,9 @@ const ScriptEditor = ({ c, formData, handleInputChange, error, setError, isManda
         border: error ? "1px solid #d32f2f" : "1px solid rgba(255,255,255,0.23)",
         borderRadius: 1,
         overflow: "hidden",
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box'
       }}
     >
       {/* Toolbar */}
@@ -157,7 +163,7 @@ const ScriptEditor = ({ c, formData, handleInputChange, error, setError, isManda
       </Stack>
 
       {/* CodeMirror mount point */}
-      <div ref={editorRef} />
+      <Box ref={editorRef} sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box' }} />
 
       {/* Error helper text */}
       {error && (
