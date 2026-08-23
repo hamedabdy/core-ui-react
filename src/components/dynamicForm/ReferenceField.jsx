@@ -164,7 +164,7 @@ const ReferenceField = ({
           size="small"
           disabled={disabled}
           aria-label="more actions"
-          sx={{ ml: 1 }} // Add some margin to separate from TextField
+          sx={{ ml: 0.1 }} // Add some margin to separate from TextField
           onClick={(e) =>
             setMoreActionsAnchorEl(moreActionsAnchorEl ? null : e.currentTarget)
           }
@@ -215,7 +215,7 @@ const ReferenceField = ({
           horizontal: 'left',
         }}
       >
-        <Box sx={{ p: 0, maxWidth: 650 }}>
+        <Box sx={{ p: 1, maxWidth: 650 }}>
           {value && column.reference ? (
             <SimpleForm tableName={column.reference} sysId={typeof value === 'object' ? value.value : value} />
           ) : (

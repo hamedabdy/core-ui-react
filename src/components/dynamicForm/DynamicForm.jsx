@@ -20,6 +20,7 @@ const DynamicForm = () => {
   const [reloadData, setReloadData] = useState(false);
   const [error, setError] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
   // NEW: State for Form Layout Modal
   const [isLayoutModalOpen, setIsLayoutModalOpen] = useState(false);
@@ -29,47 +30,56 @@ const DynamicForm = () => {
   useEffect(() => {
     console.debug("DynForm - Start of useEffet !");
 
+    let isMounted = true;
+
     const loadPage = async () => {
       try {
-        if (tableName) {
-          const cols = await ApiService.getColumns(tableName);
-          setColumns(cols.data.rows);
-          const table = await ApiService.getTable(tableName);
-          setTable(table.data);
+        setIsPageLoading(true);
 
-          // NEW: Fetch Form Layout from sys_ui_form
-          try {
-            // Assuming your ApiService.getData supports sysparm_query
-            const layoutResp = await ApiService.getData({ 
-              table_name: "sys_ui_form", 
-              sysparm_query: `name=${tableName}^view=Default view` 
-            });
-            
-            if (layoutResp.data && layoutResp.data.length > 0) {
-              const layoutRecord = layoutResp.data[0];
-              setLayoutSysId(layoutRecord.sys_id);
-              setFormLayout(JSON.parse(layoutRecord.value || "[]"));
-            } else {
-              setLayoutSysId(null);
-              setFormLayout([]); // No layout saved yet
-            }
-          } catch (layoutErr) {
-            console.error("Error fetching form layout:", layoutErr);
-            setFormLayout([]); // Fallback to empty
+        if (tableName) {
+          const [colsResp, tableResp, layoutResp] = await Promise.all([
+            ApiService.getColumns(tableName),
+            ApiService.getTable(tableName),
+            ApiService.getData({
+              table_name: "sys_ui_form",
+              sysparm_query: `name=${tableName}^view=Default view`
+            }).catch((layoutErr) => {
+              console.error("Error fetching form layout:", layoutErr);
+              return { data: [] };
+            })
+          ]);
+
+          if (!isMounted) return;
+
+          setColumns(colsResp?.data?.rows ?? []);
+          setTable(tableResp?.data ?? {});
+
+          if (layoutResp?.data && layoutResp.data.length > 0) {
+            const layoutRecord = layoutResp.data[0];
+            setLayoutSysId(layoutRecord.sys_id);
+            setFormLayout(JSON.parse(layoutRecord.value || "[]"));
+          } else {
+            setLayoutSysId(null);
+            setFormLayout([]);
           }
 
           if (sysID && sysID !== "-1") {
             const resp = await ApiService.getData({ table_name: tableName, sys_id: sysID });
-            const payload = Array.isArray(resp?.data) ? resp.data : (Array.isArray(resp?.data?.data) ? resp.data.data : [resp?.data?.data ?? resp?.data]);
+            const payload = Array.isArray(resp?.data)
+              ? resp.data
+              : (Array.isArray(resp?.data?.data) ? resp.data.data : [resp?.data?.data ?? resp?.data]);
             const record = payload[0];
-            if (!record)
-              throw new Error("Record not found");
+            if (!record) throw new Error("Record not found");
             setFormData(record);
           }
         }
       } catch (error) {
         console.error("Error loading page:", error);
         setErrorMessage(error.message || "Error loading page");
+      } finally {
+        if (isMounted) {
+          setIsPageLoading(false);
+        }
       }
     };
 
@@ -77,6 +87,7 @@ const DynamicForm = () => {
 
     if (reloadData) setReloadData(false);
     return () => {
+      isMounted = false;
       console.debug("DynForm - component is unmounting");
     };
     // eslint-disable-next-line
@@ -166,20 +177,14 @@ const DynamicForm = () => {
   const handleSaveLayout = async (layoutConfig, viewName) => {
     try {
       const payload = {
+        sys_id: layoutSysId || "", // If we have a sys_id, we update; otherwise, we insert
         name: tableName,
         view: viewName,
         value: JSON.stringify(layoutConfig)
       };
-
-      if (layoutSysId) {
-        // Update existing record
-        payload.sys_id = layoutSysId;
-        await ApiService.updateData("sys_ui_form", payload);
-      } else {
         // Insert new record
         const resp = await ApiService.addData("sys_ui_form", payload);
         if (resp.sys_id) setLayoutSysId(resp.sys_id);
-      }
       
       setFormLayout(layoutConfig); // Update local state
       // Optional: setReloadData(true) if you want the form to immediately re-render based on new layout
@@ -190,20 +195,28 @@ const DynamicForm = () => {
   };
 
   if (errorMessage === "Record not found") {
-  return (
-    <Paper elevation={0} sx={{ padding: 4, textAlign: "center", marginTop: 8 }}>
-      <Typography variant="h5" color="text.secondary" gutterBottom>
-        Record Not Found
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        The record with sys_id <strong>{sysID}</strong> does not exist in <strong>{tableName}</strong>.
-      </Typography>
-      <Button variant="outlined" onClick={() => navigate(`../${tableName}.list`)}>
-        Back to List
-      </Button>
-    </Paper>
-  );
-}
+    return (
+      <Paper elevation={0} sx={{ padding: 4, textAlign: "center", marginTop: 8 }}>
+        <Typography variant="h5" color="text.secondary" gutterBottom>
+          Record Not Found
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          The record with sys_id <strong>{sysID}</strong> does not exist in <strong>{tableName}</strong>.
+        </Typography>
+        <Button variant="outlined" onClick={() => navigate(`../${tableName}.list`)}>
+          Back to List
+        </Button>
+      </Paper>
+    );
+  }
+
+  if (isPageLoading && columns.length === 0) {
+    return (
+      <Paper elevation={0} sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+        <Typography variant="body2" color="text.secondary">Loading form…</Typography>
+      </Paper>
+    );
+  }
 
   return (
     <Paper
@@ -253,31 +266,32 @@ const DynamicForm = () => {
       <Box
         key={"box-form"}
         sx={{
-          m: 1,
-          marginTop: 3,
-          padding: "0 8%",
+          m: 0.2,
+          p: "0 10%",
           justifyContent: "center",
           width: '100%',
           overflowX: 'hidden',
           // Make this the scroll container so the footer scrolls into view
           position: 'relative',
           overflowY: 'auto',
-          maxHeight: 'calc(100vh - 220px)'
+          maxHeight: 'calc(84vh)',
         }}
       >
-        <Grid container spacing={3}>
+        <Grid container spacing={0} sx={{ gap: '3px' }}>
           {formLayout && formLayout.length > 0 ? (
             // Render according to saved layout sections
             formLayout.map((section, sidx) => {
               // section: { name, type, fields: ["col1","col2"] }
               const isTwoCol = section.type === 2;
               return (
-                <Grid item xs={12} key={`section-${sidx}`} sx={{ mb: 2 }}>
-                  <Paper elevation={0} sx={{ p: 1, bgcolor: "transparent" }}>
-                    <Typography variant="h6">{section.name}</Typography>
-                  </Paper>
+                <Grid item xs={12} key={`section-${sidx}`} sx={{ mb: 1 }}>
+                  {section.name && (
+                    <Paper elevation={0} sx={{ p: 1, bgcolor: "transparent" }}>
+                      <Typography variant="h6">{section.name}</Typography>
+                    </Paper>
+                  )}
 
-                  <Grid container spacing={2} sx={{ mt: 1 }}>
+                  <Grid container spacing={0} sx={{ mt: 1 }}>
                     {Array.isArray(section.fields) && section.fields.map((fld) => {
                       const col = columns.find((c) => c.element === fld || c.element === fld.element || c.name === fld || c.column_label === fld);
                       if (!col) return null;

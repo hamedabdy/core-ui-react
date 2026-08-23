@@ -10,7 +10,8 @@ const PageFooter = (props) => {
   return (
     <Box
       sx={{
-        marginTop: "10px",
+        mt: 0.5,
+        mb: 5,
         width: '100%',
       }}
       key={"box-buttons-bottom"}

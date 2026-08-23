@@ -19,7 +19,10 @@ import HeaderMenu from "../shared/HeaderMenu";
 
 
 const StyledAppBar = styled(AppBar)({
-  marginBottom: "1em",
+  minHeight: 48,
+  height: 48,
+  display: "flex",
+  justifyContent: "center",
 });
 
 const PageHeader = (props) => {
@@ -30,7 +33,7 @@ const PageHeader = (props) => {
   return (
     <Paper elevation={1}>
       <StyledAppBar position="static" color="default" elevation={1} sx={{ m: 0 }}>
-        <Toolbar>
+        <Toolbar sx={{ minHeight: 48, height: 48, display: 'flex', alignItems: 'center' }}>
           <Box>
             <Tooltip aria-label="Go back">
               <IconButton

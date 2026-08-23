@@ -141,12 +141,9 @@ const ScriptEditor = ({ c, formData, handleInputChange, error, setError, isManda
       <Stack
         direction="row"
         alignItems="center"
-        spacing={0.5}
         sx={{
-          px: 1,
-          py: 0.5,
           bgcolor: "#1e1e2e",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: "0px solid rgba(255,255,255,0.08)",
         }}
       >
         <Tooltip title="Format code">

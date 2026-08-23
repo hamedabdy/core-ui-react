@@ -10,7 +10,6 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
   // Ensure c.mandatory is properly handled
   const isMandatory = c.mandatory;
   const renderField = () => {
-    
     if (c.internal_type === 'reference') {
       return (
         <ReferenceField
@@ -28,7 +27,7 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
       );
     }
 
-    if(c.internal_type === 'boolean') {
+    if (c.internal_type === 'boolean') {
       return (
         <EnhancedCheckBox
           c={c}
@@ -38,9 +37,9 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
       );
     }
 
-    if (c.internal_type === "text") {
+    if (c.internal_type === "script") {
       return (
-        <MultilineTextField
+        <ScriptEditor
           c={c}
           formData={formData}
           handleInputChange={handleInputChange}
@@ -51,9 +50,12 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
       );
     }
 
-    if (c.internal_type === "script") {
+    const maxLength = Number(c.max_length || 0);
+    const useMultiline = maxLength > 255;
+
+    if (useMultiline) {
       return (
-        <ScriptEditor
+        <MultilineTextField
           c={c}
           formData={formData}
           handleInputChange={handleInputChange}
@@ -77,7 +79,7 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
           if (e.target.value) setError(false);
         }}
         size="small"
-        sx={{ width: '80%', '& .MuiInputBase-input': { fontSize: 13, padding: '6px 10px' } }}
+        sx={{ width: 'calc(100% - 45px)', '& .MuiInputBase-input': { fontSize: 13, padding: '6px 10px' } }}
       />
     );
   };
@@ -85,13 +87,13 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
   // For script fields we want the label above the input to maximize editor space
   if (c.internal_type === "script") {
     return (
-      <Grid container direction="column" sx={{ mb: 2 }}>
+      <Grid container direction="column">
         <Grid item>
-          <Typography sx={{ fontSize: 14, color: 'text.primary', mb: 1 }}>
+          <Typography sx={{ fontSize: 14, color: 'text.primary' }}>
             {c.column_label}
           </Typography>
         </Grid>
-        <Grid item>
+        <Grid item sx={{ mb: 1 }}>
           {renderField()}
         </Grid>
       </Grid>
@@ -99,7 +101,7 @@ const FormContents = ({ c, formData, setFormData, handleInputChange, error, setE
   }
 
   return (
-    <Grid container alignItems="center" sx={{ mb: 1 }}>
+    <Grid container alignItems="center" sx={{ mb: 0.3 }}>
       <Grid item xs={3} key={`grid-label-${c.sys_id}`}>
         <Typography sx={{ fontSize: 14, color: 'text.primary', textAlign: 'right', mr: 1 }}>
           {c.column_label}

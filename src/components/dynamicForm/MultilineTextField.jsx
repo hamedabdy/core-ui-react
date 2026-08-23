@@ -16,16 +16,15 @@ const MultilineTextField = ({ c, formData, handleInputChange, error, setError, i
       }}
       multiline
       minRows={4}
-      maxRows={12}
+      maxRows={15}
       size="small"
       sx={{
-        width: '80%',
+        width: 'calc(100% - 45px)',
         "& .MuiInputBase-root": {
-          alignItems: "flex-start",
         },
         "& .MuiInputBase-input": {
           fontSize: 13,
-          padding: '8px'
+          lineHeight: 1.3,
         }
       }}
     />
