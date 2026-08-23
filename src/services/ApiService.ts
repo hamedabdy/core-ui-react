@@ -59,7 +59,7 @@ const ApiService = {
    * @returns {Promise<Object[]>} Row data for the specified table.
    */
   getData: async (parms) => {
-    let p = {};
+    let p = {"sys_id": "", "sysparm_query": "", "sysparm_fields": ""};
     p.sys_id = (parms.sys_id) ? parms.sys_id : "";
     p.sysparm_query = (parms.sysparm_query) ? parms.sysparm_query : "";
     // Pass sysparm_fields directly if provided as a string
@@ -94,11 +94,6 @@ const ApiService = {
       console.error("Error adding rows:", error);
       throw error;
     }
-  },
-
-  // TODO : Interim if PATCH not yet supported on backend:
-  updateData: async (tableName, sysId, patchData) => {
-    return ApiService.addData(tableName, { ...patchData, sys_id: sysId });
   },
 
   /**
