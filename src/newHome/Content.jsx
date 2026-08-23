@@ -12,14 +12,15 @@ import './Content.css';
  * Flexible and responsive with proper spacing
  */
 
-export default function Content({ onMenuClick = () => {} }) {
+export default function Content({ onMenuClick = () => {}, setPageTitle = () => {} }) {
   return (
     <section className="content">
-      <Outlet context={{ onMenuClick }} />
+      <Outlet context={{ onMenuClick, setPageTitle }} />
     </section>
   );
 }
 
 Content.propTypes = {
   onMenuClick: PropTypes.func,
+  setPageTitle: PropTypes.func,
 };

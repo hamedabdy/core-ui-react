@@ -26,7 +26,8 @@ import './TopNav.css';
 
 export default function TopNav({
   onDrawerToggle = () => {},
-  pageTitle = 'Dashboard',
+  onMenuClick = () => {},
+  pageTitle = 'Home',
   isMobile = false,
   isDarkMode = false,
   onThemeToggle = () => {},
@@ -36,6 +37,7 @@ export default function TopNav({
 
   const handleMenuClick = (menuName) => {
     setMenuActive(menuName);
+    onMenuClick(menuName);
   };
 
   const handleAvatarClick = () => {
@@ -61,23 +63,11 @@ export default function TopNav({
       <div className="topnav__container">
         {/* Left Zone: Logo and Menu */}
         <div className="topnav__left">
-          {isMobile && (
-            <button
-              className="topnav__hamburger"
-              onClick={onDrawerToggle}
-              aria-label="Open navigation menu"
-              aria-expanded="false"
-              type="button"
-            >
-              <span className="topnav__hamburger-icon"></span>
-              <span className="topnav__hamburger-icon"></span>
-              <span className="topnav__hamburger-icon"></span>
-            </button>
-          )}
-
           {/* Logo */}
           <div className="topnav__logo">
-            <span className="topnav__logo-text">flint</span>
+            <a href="./" className="topnav__logo-link">
+              <span className="topnav__logo-text">flint</span>
+            </a>
           </div>
 
           {/* Menu Items (Desktop) */}
@@ -223,6 +213,7 @@ export default function TopNav({
 
 TopNav.propTypes = {
   onDrawerToggle: PropTypes.func,
+  onMenuClick: PropTypes.func, 
   pageTitle: PropTypes.string,
   isMobile: PropTypes.bool,
   isDarkMode: PropTypes.bool,

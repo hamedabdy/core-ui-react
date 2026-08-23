@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
+
+
 import ApiService from '../services/ApiService';
 import './SidePanel.css';
 
@@ -15,13 +18,16 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
 import InputBase from '@mui/material/InputBase';
 import InputAdornment from '@mui/material/InputAdornment';
-import CircularProgress from '@mui/material/CircularProgress';
 
 // MUI Icons
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import CircularProgress from '@mui/material/CircularProgress';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import SearchIcon from '@mui/icons-material/Search';
+import PushPinIcon from '@mui/icons-material/PushPin';
+import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
 
 /**
  * SidePanel Component (formerly Navigator)
@@ -46,6 +52,7 @@ export default function SidePanel({
   onClose = () => {},
   onPinToggle = () => {},
   isMobile = false,
+  onModuleClick = () => {},
 }) {
   const [searchValue, setSearchValue] = useState('');
   const [categories, setCategories] = useState([]);
@@ -210,8 +217,8 @@ export default function SidePanel({
 
   return (
     <React.Fragment>
-      {/* Backdrop (mobile only) */}
-      {isMobile && isOpen && (
+      {/* Backdrop (click outside to close) */}
+      {isOpen && !isPinned && (
         <Box
           className="sidepanel__backdrop"
           onClick={onClose}
@@ -231,7 +238,7 @@ export default function SidePanel({
         role="navigation"
       >
         {/* Header with Search */}
-        <Box sx={{ pl: 1, }}>
+        <Box sx={{ pl: 1, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'nowrap',}}>
           <InputBase
             inputRef={searchInputRef}
             className="sidepanel__search-input"
@@ -239,16 +246,32 @@ export default function SidePanel({
             value={searchValue}
             onChange={handleSearchChange}
             aria-label="Search navigation items"
-            fullWidth
             startAdornment={
               <InputAdornment position="start">
                 <SearchIcon fontSize="small" sx={{ color: 'white' }} />
               </InputAdornment>
             }
             sx={{
+              flex: 1,
               color: 'white',
             }}
           />
+          {/* Pin Button */}
+          <IconButton 
+            onClick={onPinToggle} 
+            size="small" 
+            aria-label={isPinned ? 'Unpin sidebar' : 'Pin sidebar'}
+            sx={{ 
+              color: isPinned ? 'white' : 'rgba(255, 255, 255, 0.5)',
+              // Optional: Add a slight background when pinned to show it's active
+              backgroundColor: isPinned ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.25)',
+              }
+            }}
+          >
+            {isPinned ? <PushPinIcon fontSize="small" /> : <PushPinOutlinedIcon fontSize="small" />}
+          </IconButton>
         </Box>
 
         {/* Menu Content */}
@@ -305,7 +328,7 @@ export default function SidePanel({
                   }}
                 >
                   <AccordionSummary
-                    expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
+                    expandIcon={<ExpandLessIcon sx={{ color: 'white' }} />}
                     aria-controls={`${react_id}-panel1-content`}
                     id={`${react_id}-panel1-header`}
                     sx={{
@@ -348,13 +371,17 @@ export default function SidePanel({
                         <ListItem key={child.sys_id} disablePadding>
                           <ListItemButton
                             ref={index === 0 ? firstMenuItemRef : null}
-                            component="a"
-                            href={child.link}
+                            component={Link} 
+                            to={child.link || '#'} 
                             onClick={(e) => {
+                              // 3. If user is trying to open in a new tab (Ctrl/Cmd/Shift/Middle-click), 
+                              // let the native browser handle it and DO NOT run our SPA logic.
+                              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1)
+                                return;
+                              
                               if (isMobile && e.button === 0) {
                                 e.preventDefault();
-                                onClose();
-                                window.location.href = child.link;
+                                onModuleClick(child); // Pass the whole child object {id, link} to parent
                               }
                             }}
                             role="menuitem"

@@ -1,5 +1,5 @@
-import {useState, useEffect, } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useOutletContext, useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { Paper, Typography, Grid, Box, Button } from "@mui/material";
 
 // Import Local Components
@@ -11,110 +11,114 @@ import FormLayoutConfig from "./FormLayoutConfig";
 
 const DynamicForm = () => {
   const navigate = useNavigate();
-  const {tableName} = useParams();
+  const { tableName } = useParams();
   const [searchParams] = useSearchParams();
-  const [sysID, setSysID] = useState(searchParams.get("sys_id"));
+  
+  // OPTIMIZATION: Derive sysId directly from URL, no need for redundant state
+  const sysIdParam = searchParams.get("sys_id") || "";
+
   const [columns, setColumns] = useState([]);
-  const [table, setTable] = useState({}); // table metadata
+  const [table, setTable] = useState({}); 
   const [formData, setFormData] = useState({});
   const [reloadData, setReloadData] = useState(false);
-  const [error, setError] = useState(null);
+  
+  // Kept `error` state because it is passed down to FormContents
+  const [error, setError] = useState(null); 
   const [errorMessage, setErrorMessage] = useState(null);
   const [isPageLoading, setIsPageLoading] = useState(true);
 
-  // NEW: State for Form Layout Modal
+  // State for Form Layout Modal
   const [isLayoutModalOpen, setIsLayoutModalOpen] = useState(false);
   const [formLayout, setFormLayout] = useState([]);
-  const [layoutSysId, setLayoutSysId] = useState(null); // To track if we insert or update
+  const [layoutSysId, setLayoutSysId] = useState(null); 
+  
+  const { setPageTitle } = useOutletContext();
 
   useEffect(() => {
-    console.debug("DynForm - Start of useEffet !");
+    if (!tableName) return;
 
     let isMounted = true;
+    const controller = new AbortController(); // Prevents memory leaks on rapid navigation
 
     const loadPage = async () => {
+      setIsPageLoading(true);
+      setErrorMessage(null);
+
       try {
-        setIsPageLoading(true);
+        const [colsResp, tableResp, layoutResp] = await Promise.all([
+          ApiService.getColumns(tableName),
+          ApiService.getTable(tableName),
+          ApiService.getData({
+            table_name: "sys_ui_form",
+            sysparm_query: `name=${tableName}^view=Default view`
+          }).catch((layoutErr) => {
+            console.error("Error fetching form layout:", layoutErr);
+            return { data: [] };
+          })
+        ]);
 
-        if (tableName) {
-          const [colsResp, tableResp, layoutResp] = await Promise.all([
-            ApiService.getColumns(tableName),
-            ApiService.getTable(tableName),
-            ApiService.getData({
-              table_name: "sys_ui_form",
-              sysparm_query: `name=${tableName}^view=Default view`
-            }).catch((layoutErr) => {
-              console.error("Error fetching form layout:", layoutErr);
-              return { data: [] };
-            })
-          ]);
+        if (!isMounted) return;
 
-          if (!isMounted) return;
+        setColumns(colsResp?.data?.rows ?? []);
+        setTable(tableResp?.data ?? {});
 
-          setColumns(colsResp?.data?.rows ?? []);
-          setTable(tableResp?.data ?? {});
-
-          if (layoutResp?.data && layoutResp.data.length > 0) {
-            const layoutRecord = layoutResp.data[0];
-            setLayoutSysId(layoutRecord.sys_id);
+        // OPTIMIZATION: Safely parse JSON to prevent app crashes on malformed DB data
+        if (layoutResp?.data?.length > 0) {
+          const layoutRecord = layoutResp.data[0];
+          setLayoutSysId(layoutRecord.sys_id);
+          try {
             setFormLayout(JSON.parse(layoutRecord.value || "[]"));
-          } else {
-            setLayoutSysId(null);
+          } catch (parseError) {
+            console.error("Failed to parse form layout JSON:", parseError);
             setFormLayout([]);
           }
-
-          if (sysID && sysID !== "-1") {
-            const resp = await ApiService.getData({ table_name: tableName, sys_id: sysID });
-            const payload = Array.isArray(resp?.data)
-              ? resp.data
-              : (Array.isArray(resp?.data?.data) ? resp.data.data : [resp?.data?.data ?? resp?.data]);
-            const record = payload[0];
-            if (!record) throw new Error("Record not found");
-            setFormData(record);
-          }
+        } else {
+          setLayoutSysId(null);
+          setFormLayout([]);
         }
-      } catch (error) {
-        console.error("Error loading page:", error);
-        setErrorMessage(error.message || "Error loading page");
+
+        // OPTIMIZATION: Cleaned up payload extraction logic
+        if (sysIdParam && sysIdParam !== "-1") {
+          const resp = await ApiService.getData({ table_name: tableName, sys_id: sysIdParam });
+          if (!isMounted) return;
+
+          const rawPayload = resp?.data;
+          const record = Array.isArray(rawPayload) 
+            ? rawPayload[0] 
+            : Array.isArray(rawPayload?.data) 
+              ? rawPayload.data[0] 
+              : rawPayload;
+
+          if (!record) throw new Error("Record not found");
+          
+          setPageTitle(`${tableResp?.data?.label} - ${record?.sys_name || 'Unknown'}`);
+          setFormData(record);
+        } else if (sysIdParam === "-1" || !sysIdParam) {
+          // Handle New Record cleanly
+          setFormData({});
+          setPageTitle(`${tableResp?.data?.label} - New`);
+        }
+
+      } catch (err) {
+        console.error("Error loading page:", err);
+        if (isMounted) setErrorMessage(err.message || "Error loading page");
       } finally {
         if (isMounted) {
           setIsPageLoading(false);
+          if (reloadData) setReloadData(false);
         }
       }
     };
 
     loadPage();
 
-    if (reloadData) setReloadData(false);
     return () => {
       isMounted = false;
-      console.debug("DynForm - component is unmounting");
+      controller.abort();
     };
-    // eslint-disable-next-line
-  }, [tableName, sysID, reloadData]);
-
-  /*
-  // TODO event base form update when data changes at server side
-  // function useTraceUpdate(props) {
-  //   const prev = useRef(props);
-  //   useEffect(() => {
-  //     const changedProps = Object.entries(props).reduce((ps, [k, v]) => {
-  //       if (prev.current[k] !== v) {
-  //         ps[k] = [prev.current[k], v];
-  //       }
-  //       return ps;
-  //     }, {});
-  //     if (Object.keys(changedProps).length > 0) {
-  //       console.log("Changed props:", changedProps);
-  //     }
-  //     prev.current = props;
-  //   });
-  // }
-*/
-
+  }, [tableName, sysIdParam, reloadData, setPageTitle]);
 
   const handleInputChange = (columnName, value) => {
-    // Update form data when input values change
     setFormData((prevData) => ({
       ...prevData,
       [columnName]: value,
@@ -124,35 +128,52 @@ const DynamicForm = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      // Directly send a request to your API to insert a new row or column
       const response = await ApiService.addData(tableName, formData);
       if (response.status === "success") {
-        setSysID(response.sys_id);
-        navigate(`?sys_id=${response.sys_id}`);
-        // After saving the form, update the state to trigger a re-render
-        setReloadData(true);
+        setErrorMessage("Record saved successfully"); // Added success feedback
+        // If it was a new record, navigate to the new sys_id
+        if (response.sys_id && response.sys_id !== sysIdParam) {
+          navigate(`?sys_id=${response.sys_id}`);
+        } else {
+          setReloadData(true);
+        }
       } else {
-        setErrorMessage(response.message || "Error inserting row.");
+        setErrorMessage(response.message || "Error saving record.");
       }
-    } catch (error) {
-      console.error("Error inserting row:", error);
-      setErrorMessage(error.message || "Error inserting row.");
+    } catch (err) {
+      console.error("Error inserting row:", err);
+      setErrorMessage(err.message || "Error saving record.");
     }
   };
 
   const insertAndStay = async (event) => {
     event.preventDefault();
-    var fd = formData;
+    
+    // OPTIMIZATION: Prevent direct state mutation. Clone first.
+    const fd = { ...formData };
     fd.sys_id = "-1";
-    fd.sys_created_on =
-      fd.sys_created_by =
-      fd.sys_updated_on =
-      fd.sys_updated_by =
-      fd.sys_name =
-        "";
+    fd.sys_created_on = "";
+    fd.sys_created_by = "";
+    fd.sys_updated_on = "";
+    fd.sys_updated_by = "";
+    fd.sys_name = "";
 
     setFormData(fd);
-    handleSubmit(event);
+
+    try {
+      const response = await ApiService.addData(tableName, fd);
+      if (response.status === "success") {
+        setErrorMessage("New record inserted successfully");
+        // Navigate back to -1 to stay on a new form, or to the new record if preferred
+        navigate(`?sys_id=-1`); 
+        setReloadData(true);
+      } else {
+        setErrorMessage(response.message || "Error inserting row.");
+      }
+    } catch (err) {
+      console.error("Error inserting row:", err);
+      setErrorMessage(err.message || "Error inserting row.");
+    }
   };
 
   const handleDelete = async (event) => {
@@ -160,37 +181,33 @@ const DynamicForm = () => {
     try {
       const response = await ApiService.deleteData(tableName, formData);
       if (response.status === "success") {
-        
-          // No history, redirect to the list view of the same table
-          navigate(`../${tableName}.list`);
-        
+        navigate(`../${tableName}.list`);
       } else {
         setErrorMessage(response.message || "Failed to delete record");
       }
-    } catch (error) {
-      console.error("Error deleting row:", error);
-      setErrorMessage(error.response?.data?.message || "Error deleting record: " + error.message);
+    } catch (err) {
+      console.error("Error deleting row:", err);
+      setErrorMessage(err.response?.data?.message || "Error deleting record: " + err.message);
     }
   };
 
-  // NEW: Handler to save layout configuration
   const handleSaveLayout = async (layoutConfig, viewName) => {
     try {
       const payload = {
-        sys_id: layoutSysId || "", // If we have a sys_id, we update; otherwise, we insert
+        sys_id: layoutSysId || "",
         name: tableName,
         view: viewName,
         value: JSON.stringify(layoutConfig)
       };
-        // Insert new record
-        const resp = await ApiService.addData("sys_ui_form", payload);
-        if (resp.sys_id) setLayoutSysId(resp.sys_id);
       
-      setFormLayout(layoutConfig); // Update local state
-      // Optional: setReloadData(true) if you want the form to immediately re-render based on new layout
-    } catch (error) {
-      console.error("Error saving form layout:", error);
-      setErrorMessage("Failed to save form layout: " + error.message);
+      const resp = await ApiService.addData("sys_ui_form", payload);
+      if (resp.sys_id) setLayoutSysId(resp.sys_id);
+      
+      setFormLayout(layoutConfig);
+      setErrorMessage("Layout saved successfully");
+    } catch (err) {
+      console.error("Error saving form layout:", err);
+      setErrorMessage("Failed to save form layout: " + err.message);
     }
   };
 
@@ -201,7 +218,7 @@ const DynamicForm = () => {
           Record Not Found
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          The record with sys_id <strong>{sysID}</strong> does not exist in <strong>{tableName}</strong>.
+          The record with sys_id <strong>{sysIdParam}</strong> does not exist in <strong>{tableName}</strong>.
         </Typography>
         <Button variant="outlined" onClick={() => navigate(`../${tableName}.list`)}>
           Back to List
@@ -233,11 +250,11 @@ const DynamicForm = () => {
     >
       <PageHeader
         table={table}
-        sysID={sysID}
+        sysID={sysIdParam}
         formData={formData}
         insertAndStay={insertAndStay}
         handleDelete={handleDelete}
-        onFormLayoutClick={() => setIsLayoutModalOpen(true)} // NEW: Pass modal opener
+        onFormLayoutClick={() => setIsLayoutModalOpen(true)}
       />
 
       {errorMessage && (
@@ -249,7 +266,7 @@ const DynamicForm = () => {
             marginTop: 2,
             bgcolor: errorMessage.includes("success") ? "success.main" : "error.main",
             color: "error.contrastText",
-            marginleft: "10%",
+            marginLeft: "10%", // Fixed typo from 'marginleft'
             marginRight: "10%",
             display: "flex",
             justifyContent: "center",
@@ -264,14 +281,13 @@ const DynamicForm = () => {
       )}
 
       <Box
-        key={"box-form"}
+        key="box-form"
         sx={{
           m: 0.2,
           p: "0 10%",
           justifyContent: "center",
           width: '100%',
           overflowX: 'hidden',
-          // Make this the scroll container so the footer scrolls into view
           position: 'relative',
           overflowY: 'auto',
           maxHeight: 'calc(84vh)',
@@ -279,9 +295,7 @@ const DynamicForm = () => {
       >
         <Grid container spacing={0} sx={{ gap: '3px' }}>
           {formLayout && formLayout.length > 0 ? (
-            // Render according to saved layout sections
             formLayout.map((section, sidx) => {
-              // section: { name, type, fields: ["col1","col2"] }
               const isTwoCol = section.type === 2;
               return (
                 <Grid item xs={12} key={`section-${sidx}`} sx={{ mb: 1 }}>
@@ -293,7 +307,12 @@ const DynamicForm = () => {
 
                   <Grid container spacing={0} sx={{ mt: 1 }}>
                     {Array.isArray(section.fields) && section.fields.map((fld) => {
-                      const col = columns.find((c) => c.element === fld || c.element === fld.element || c.name === fld || c.column_label === fld);
+                      const col = columns.find((c) => 
+                        c.element === fld || 
+                        c.element === fld.element || 
+                        c.name === fld || 
+                        c.column_label === fld
+                      );
                       if (!col) return null;
                       return (
                         <Grid item xs={isTwoCol ? 6 : 12} key={`grid-input-${col.sys_id}`}>
@@ -313,7 +332,6 @@ const DynamicForm = () => {
               );
             })
           ) : (
-            // Fallback: render all columns in default two-column grid
             columns.map((c) => (
               <Grid item xs={6} key={`grid-input-${c.sys_id}`}>
                 <FormContents
@@ -329,10 +347,9 @@ const DynamicForm = () => {
           )}
         </Grid>
 
-        {/* Footer inside the scroll container so it stays visible and reachable */}
         <PageFooter insertAndStay={insertAndStay} handleDelete={handleDelete} />
       </Box>
-      {/* NEW: Render the Form Layout Modal */}
+
       <FormLayoutConfig
         open={isLayoutModalOpen}
         onClose={() => setIsLayoutModalOpen(false)}

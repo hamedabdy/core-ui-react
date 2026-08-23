@@ -116,6 +116,11 @@
   letter-spacing: -0.5px;
 }
 
+.topnav__logo-link {
+  text-decoration: none;
+  color: inherit;
+}
+
 /* Menu (Desktop) */
 .topnav__menu {
   margin: 0;

@@ -1,9 +1,8 @@
-// import PropTypes from "prop-types"; // data type checking
 import React, { useState, useEffect } from "react";
-import { useParams, useSearchParams, useNavigate } from "react-router-dom";
+import { useOutletContext, useParams, useSearchParams, useNavigate } from "react-router-dom";
 
 // Styles
-import {Box, TableContainer, Table, Paper, TablePagination} from "@mui/material";
+import { Box, TableContainer, Table, Paper, TablePagination } from "@mui/material";
 
 // IMPORT LOCAL COMPONENTS
 import ApiService from "../../services/ApiService";
@@ -19,90 +18,131 @@ const DynamicList = () => {
   const { tableName } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [sysparmQuery, setSysparmQuery] = useState(searchParams.get("sysparm_query"));
-  const [sysparmFields, setSysparmFields] = useState(searchParams.get("sysparm_fields") || "");
+
+  // OPTIMIZATION: Derive URL state directly, no need for redundant useState
+  const sysparmQuery = searchParams.get("sysparm_query") || "";
+  const sysparmFields = searchParams.get("sysparm_fields") || "";
+
   const [columns, setColumns] = useState([]);
   const [data, setData] = useState([]);
   const [table, setTable] = useState({}); // table metadata
+  
   const listState = useDynamicListState(data, columns, {
     order: "desc",
     orderBy: "sys_updated_on",
   });
 
+  const { setPageTitle } = useOutletContext();
 
-  // Fetches only the row data — called when fields/query change
-const fetchData = async () => {
-  try {
-    const resp = await ApiService.getData({
-      table_name:     tableName,
-      sysparm_query:  sysparmQuery,
-      sysparm_fields: sysparmFields,
-    });
-    setData(resp.data);
-  } catch (error) {
-    console.error(`Error loading data: ${error.message}`);
-  }
-};
-
-// Loads columns + preference — called only on first load / table change
-  const initColumns = async () => {
-    try {
-      const [colsResp, tableInfo, pref] = await Promise.all([
-        ApiService.getColumns(tableName),
-        ApiService.getTable(tableName),
-        loadListColumnPref(tableName),
-      ]);
-
-      const allColumns = colsResp.data.rows;
-      setColumns(allColumns);
-      setTable(tableInfo.data);
-
-      // Apply preference or default to all columns
-      if (pref?.columns?.length) {
-        const valid = pref.columns.filter(el => allColumns.some(c => c.element === el));
-        if (valid.length) {
-          listState.setVisibleColumnElements(valid);
-          setSysparmFields(valid.join(","));
-          return;
-        }
-      }
-      // No preference — show all columns
-      const allElements = allColumns.map(col => col.element);
-      listState.setVisibleColumnElements(allElements);
-      setSysparmFields(allElements.join(","));
-
-    } catch (error) {
-      console.error(`Error loading columns: ${error.message}`);
+  // OPTIMIZATION: Dedicated effect for page title (prevents unnecessary fetches)
+  useEffect(() => {
+    if (table?.label) {
+      setPageTitle(table.label);
     }
-  };
+  }, [table, setPageTitle]);
 
   // ── Effect 1: Fetch data when table, query OR visible fields change ──────────
   useEffect(() => {
+    if (!tableName) return;
+
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchData = async () => {
+      try {
+        const resp = await ApiService.getData({
+          table_name: tableName,
+          sysparm_query: sysparmQuery,
+          sysparm_fields: sysparmFields,
+        });
+        // Prevent setting state if component unmounted or URL changed rapidly
+        if (isMounted) setData(resp.data || []);
+      } catch (error) {
+        if (isMounted) console.error(`Error loading data: ${error.message}`);
+      }
+    };
+
     fetchData();
-    // eslint-disable-next-line
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
   }, [tableName, sysparmQuery, sysparmFields]);
 
-  
   // ── Effect 2: Init columns + preference ONLY on table change (first load) ────
   useEffect(() => {
+    if (!tableName) return;
+
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const initColumns = async () => {
+      try {
+        const [colsResp, tableInfo, pref] = await Promise.all([
+          ApiService.getColumns(tableName),
+          ApiService.getTable(tableName),
+          loadListColumnPref(tableName),
+        ]);
+
+        if (!isMounted) return;
+
+        const allColumns = colsResp?.data?.rows || [];
+        setColumns(allColumns);
+        setTable(tableInfo?.data || {});
+
+        const currentUrlFields = searchParams.get("sysparm_fields");
+
+        // Apply preference if URL doesn't explicitly override it
+        if (!currentUrlFields && pref?.columns?.length) {
+          const valid = pref.columns.filter(el => allColumns.some(c => c.element === el));
+          if (valid.length) {
+            listState.setVisibleColumnElements(valid);
+            // Sync URL silently
+            const params = new URLSearchParams(searchParams);
+            params.set("sysparm_fields", valid.join(","));
+            navigate({ search: params.toString() }, { replace: true });
+            return;
+          }
+        }
+
+        // No preference or URL override — show all columns
+        const allElements = allColumns.map(col => col.element);
+        listState.setVisibleColumnElements(allElements);
+        
+        if (!currentUrlFields) {
+          const params = new URLSearchParams(searchParams);
+          params.set("sysparm_fields", allElements.join(","));
+          navigate({ search: params.toString() }, { replace: true });
+        }
+
+      } catch (error) {
+        if (isMounted) console.error(`Error loading columns: ${error.message}`);
+      }
+    };
+
     initColumns();
-    // eslint-disable-next-line
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tableName]);
 
   const handleFilterChange = (query) => {
-    setSysparmQuery(query);
-    fetchData();
+    // OPTIMIZATION: Update URL. The useEffect will automatically trigger fetchData() 
+    // with the new sysparmQuery. This fixes a state race condition.
+    const params = new URLSearchParams(searchParams);
+    params.set("sysparm_query", query);
+    navigate({ search: params.toString() });
   };
 
-  // Handler for column selection from EnhancedToolbar
   const handleColumnsChange = async (selectedElements) => {
-    // Update UI state
     listState.setVisibleColumnElements(selectedElements);
     const newSysparmFields = selectedElements.join(",");
-    setSysparmFields(newSysparmFields);
 
-    // Update URL (for bookmarking/sharing)
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(searchParams);
     params.set("sysparm_fields", newSysparmFields);
     navigate({ search: params.toString() }, { replace: true });
 
@@ -116,7 +156,6 @@ const fetchData = async () => {
 
   return (
     <Box sx={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Paper acts as a flex column so header, filter, table and pagination are stacked */}
       <Paper sx={{ width: "100%", mb: 2, overflow: "hidden", display: "flex", flexDirection: "column", flex: 1 }}>
         <EnhancedToolbar
           columns={columns}
@@ -128,22 +167,18 @@ const fetchData = async () => {
           visibleColumnElements={listState.visibleColumnElements}
         />
         <QueryFilter tableName={tableName} setData={setData} />
-        {/* Table container scrolls while header/footer stay fixed */}
-        <TableContainer
-          component={Paper}
-          elevation={1}
-          sx={{ flex: 1, overflow: "auto" }}
-        >
+        
+        <TableContainer component={Paper} elevation={1} sx={{ flex: 1, overflow: "auto" }}>
           <Table
             stickyHeader
             size="small"
             sx={{
               minWidth: 750,
-                "& th, & td": {
-                  padding: "2px 8px",
-                  fontSize: "0.80rem",
-                  lineHeight: 1.2,
-                },
+              "& th, & td": {
+                padding: "2px 8px",
+                fontSize: "0.80rem",
+                lineHeight: 1.2,
+              },
             }}
           >
             <EnhancedTableHead
@@ -161,15 +196,13 @@ const fetchData = async () => {
               columns={listState.filteredColumns}
               visibleRows={listState.visibleRows}
               isSelected={listState.isSelected}
-              handleClick={(event, id) => {
-                listState.handleClick(event, id);
-              }}
+              handleClick={(event, id) => listState.handleClick(event, id)}
               emptyRows={listState.emptyRows}
               tableName={tableName}
             />
           </Table>
         </TableContainer>
-        {/* Pagination stays at the bottom */}
+        
         <Box sx={{ flexShrink: 0 }}>
           <TablePagination
             rowsPerPageOptions={[10, 25, 50, 100]}
