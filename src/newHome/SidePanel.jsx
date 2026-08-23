@@ -3,16 +3,25 @@ import PropTypes from 'prop-types';
 import ApiService from '../services/ApiService';
 import './SidePanel.css';
 
+// MUI Components
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
-import ListSubheader from '@mui/material/ListSubheader';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import InputBase from '@mui/material/InputBase';
+import InputAdornment from '@mui/material/InputAdornment';
+import CircularProgress from '@mui/material/CircularProgress';
+
+// MUI Icons
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SearchIcon from '@mui/icons-material/Search';
 
 /**
  * SidePanel Component (formerly Navigator)
@@ -200,10 +209,10 @@ export default function SidePanel({
   const react_id = React.useId();
 
   return (
-    <>
+    <React.Fragment>
       {/* Backdrop (mobile only) */}
       {isMobile && isOpen && (
-        <div
+        <Box
           className="sidepanel__backdrop"
           onClick={onClose}
           role="presentation"
@@ -212,7 +221,8 @@ export default function SidePanel({
       )}
 
       {/* Side Panel */}
-      <aside
+      <Box
+        component="aside"
         ref={panelRef}
         className={`sidepanel ${isOpen ? 'sidepanel--open' : ''} ${
           isPinned ? 'sidepanel--pinned' : ''
@@ -220,87 +230,98 @@ export default function SidePanel({
         aria-label="Navigation menu"
         role="navigation"
       >
-        {/* Header with Search, Refresh, Pin */}
-        <div className="sidepanel__header">
-          <div className="sidepanel__search-box">
-            <svg
-              className="sidepanel__search-icon"
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
-            >
-              <circle cx="6" cy="6" r="4"></circle>
-              <path d="M10 10l4 4"></path>
-            </svg>
-            <input
-              ref={searchInputRef}
-              type="text"
-              className="sidepanel__search-input"
-              placeholder="Search..."
-              value={searchValue}
-              onChange={handleSearchChange}
-              aria-label="Search navigation items"
-            />
-          </div>
-        </div>
+        {/* Header with Search */}
+        <Box sx={{ pl: 1, }}>
+          <InputBase
+            inputRef={searchInputRef}
+            className="sidepanel__search-input"
+            placeholder="Search..."
+            value={searchValue}
+            onChange={handleSearchChange}
+            aria-label="Search navigation items"
+            fullWidth
+            startAdornment={
+              <InputAdornment position="start">
+                <SearchIcon fontSize="small" sx={{ color: 'white' }} />
+              </InputAdornment>
+            }
+            sx={{
+              color: 'white',
+            }}
+          />
+        </Box>
 
         {/* Menu Content */}
-        <nav aria-label="Navigation items">
+        <Box component="nav" aria-label="Navigation items">
           {loading ? (
-            <div className="sidepanel__loading">
-              <span className="sidepanel__spinner"></span>
-              <span>Loading...</span>
-            </div>
+            <Stack 
+              className="sidepanel__loading" 
+              alignItems="center" 
+              justifyContent="center" 
+              spacing={2} 
+              sx={{ py: 4 }}
+            >
+              <CircularProgress size={24} sx={{ color: 'white' }} />
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                Loading...
+              </Typography>
+            </Stack>
           ) : error ? (
-            <div className="sidepanel__error">
-              <p>{error}</p>
-              <button
-                className="sidepanel__retry-button"
+            <Stack 
+              className="sidepanel__error" 
+              alignItems="center" 
+              justifyContent="center" 
+              spacing={2} 
+              sx={{ py: 4, px: 2, textAlign: 'center' }}
+            >
+              <Typography color="error">{error}</Typography>
+              <Button 
+                variant="outlined" 
+                color="error" 
+                size="small" 
                 onClick={handleRefresh}
-                type="button"
               >
                 Retry
-              </button>
-            </div>
+              </Button>
+            </Stack>
           ) : hasNoResults ? (
-            <div className="sidepanel__no-results">
-              <p>No results found for "{searchValue}"</p>
-            </div>
+            <Box className="sidepanel__no-results" sx={{ p: 1, textAlign: 'center' }}>
+              <Typography variant="body2" sx={{ color: 'white' }}>
+                No results found for "{searchValue}"
+              </Typography>
+            </Box>
           ) : (
             <List component="nav" aria-labelledby="sidepanel-menu">
               {filteredCategories.map((category) => (
-                <Accordion key={category.sys_id}  defaultExpanded disableGutters 
+                <Accordion 
+                  key={category.sys_id}  
+                  defaultExpanded 
+                  disableGutters 
                   sx={{
-                    // Creates a glowing circle in the top-left corner fading out to transparent
                     background: 'linear-gradient(135deg, #1e1e24 50%, #0a0a0d 90%)',
-                  // background: 'radial-gradient(circle at top left, #1e1e24 50%, #0a0a0d 70%)',
-                  border: '1px solid rgba(200, 200, 220, 0.2)',
-                  boxShadow: '0 0 15px rgba(255, 255, 255, 0.1)', // White glow shadow
-                  backdropFilter: 'blur(6px)',
-                  }}>
+                    border: '1px solid rgba(200, 200, 220, 0.2)',
+                    boxShadow: '0 0 15px rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(6px)',
+                  }}
+                >
                   <AccordionSummary
-                    expandIcon={<ExpandLessIcon sx={{ color: 'white' }} />}
+                    expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}
                     aria-controls={`${react_id}-panel1-content`}
                     id={`${react_id}-panel1-header`}
                     sx={{
                       pl: 1.1,
-                      // Goal 1: Move icon to start (left) - Targeting the root class to beat MUI's default specificity
                       '& .MuiAccordionSummary-expandIconWrapper': {
-                        order: -1, // <--- Forces the icon to render before the text
+                        order: -1, 
                         position: 'relative',
                       },
                       '&.Mui-expanded': {
-                        minHeight: '44px', // Prevents height jump when expanded
+                        minHeight: '44px', 
                         height: '44px',
                       },
                       '& .MuiAccordionSummary-content': {
-                        margin: 0, // <--- Removes default 12px top/bottom margin
+                        margin: 0, 
                         '&.Mui-expanded': {
-                          margin: 0, // Keeps margin removed when expanded
+                          margin: 0, 
                         },
                       },
                     }}
@@ -308,16 +329,16 @@ export default function SidePanel({
                     <Typography 
                       sx={{
                         color: 'white',
-                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)', // x, y, blur, color
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)', 
                       }}
                     >
-                    {category.id}</Typography>
+                      {category.id}
+                    </Typography>
                   </AccordionSummary>
-                  {/* Goal 2: Vertical line extending down from the icon */}
+                  
                   <AccordionDetails 
                     sx={{ 
                       p: 0, 
-                      // 20px aligns the border perfectly with the center of the 24px default MUI icon
                       ml: '20px', 
                       borderLeft: '1px solid rgba(255, 255, 255, 0.3)' 
                     }}
@@ -342,21 +363,23 @@ export default function SidePanel({
                                 minHeight: '32px',
                                 height: '32px',
                               },
-                              justifyContent: 'flex-start', // <--- Forces flexbox to align left
-                              textAlign: 'left',           // <--- Forces text to align left
+                              justifyContent: 'flex-start', 
+                              textAlign: 'left',           
                               p: 0,
                               pl: 2,
                             }}
                           >
-                            <ListItemText primary={child.id}
+                            <ListItemText 
+                              primary={child.id}
                               sx={{ 
                                 m: 0,
                                 '& .MuiTypography-root': { 
-                                  color: 'white', // Apply same text styling to children if desired
+                                  color: 'white', 
                                   textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)',
                                   lineHeight: '1.2' 
                                 }
-                              }} />
+                              }} 
+                            />
                           </ListItemButton>
                         </ListItem>
                       ))}
@@ -366,9 +389,9 @@ export default function SidePanel({
               ))}
             </List>
           )}
-        </nav>
-      </aside>
-    </>
+        </Box>
+      </Box>
+    </React.Fragment>
   );
 }
 
