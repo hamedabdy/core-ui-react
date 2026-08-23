@@ -12,7 +12,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 
 /**
  * SidePanel Component (formerly Navigator)
@@ -273,29 +273,95 @@ export default function SidePanel({
           ) : (
             <List component="nav" aria-labelledby="sidepanel-menu">
               {filteredCategories.map((category) => (
-                <Accordion key={category.sys_id}  defaultExpanded>
+                <Accordion key={category.sys_id}  defaultExpanded disableGutters 
+                  sx={{
+                    // Creates a glowing circle in the top-left corner fading out to transparent
+                    background: 'linear-gradient(135deg, #1e1e24 50%, #0a0a0d 90%)',
+                  // background: 'radial-gradient(circle at top left, #1e1e24 50%, #0a0a0d 70%)',
+                  border: '1px solid rgba(200, 200, 220, 0.2)',
+                  boxShadow: '0 0 15px rgba(255, 255, 255, 0.1)', // White glow shadow
+                  backdropFilter: 'blur(6px)',
+                  }}>
                   <AccordionSummary
-                    expandIcon={<ExpandMoreIcon />}
+                    expandIcon={<ExpandLessIcon sx={{ color: 'white' }} />}
                     aria-controls={`${react_id}-panel1-content`}
                     id={`${react_id}-panel1-header`}
+                    sx={{
+                      pl: 1.1,
+                      // Goal 1: Move icon to start (left) - Targeting the root class to beat MUI's default specificity
+                      '& .MuiAccordionSummary-expandIconWrapper': {
+                        order: -1, // <--- Forces the icon to render before the text
+                        position: 'relative',
+                      },
+                      '&.Mui-expanded': {
+                        minHeight: '44px', // Prevents height jump when expanded
+                        height: '44px',
+                      },
+                      '& .MuiAccordionSummary-content': {
+                        margin: 0, // <--- Removes default 12px top/bottom margin
+                        '&.Mui-expanded': {
+                          margin: 0, // Keeps margin removed when expanded
+                        },
+                      },
+                    }}
                   >
-                    <Typography component="span">{category.id}</Typography>
+                    <Typography 
+                      sx={{
+                        color: 'white',
+                        textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)', // x, y, blur, color
+                      }}
+                    >
+                    {category.id}</Typography>
                   </AccordionSummary>
-                  
+                  {/* Goal 2: Vertical line extending down from the icon */}
+                  <AccordionDetails 
+                    sx={{ 
+                      p: 0, 
+                      // 20px aligns the border perfectly with the center of the 24px default MUI icon
+                      ml: '20px', 
+                      borderLeft: '1px solid rgba(255, 255, 255, 0.3)' 
+                    }}
+                  >
                     <List component="div" disablePadding>
                       {category.children.map((child, index) => (
                         <ListItem key={child.sys_id} disablePadding>
                           <ListItemButton
                             ref={index === 0 ? firstMenuItemRef : null}
-                            onClick={() => handleMenuItemClick(child.link)}
+                            component="a"
+                            href={child.link}
+                            onClick={(e) => {
+                              if (isMobile && e.button === 0) {
+                                e.preventDefault();
+                                onClose();
+                                window.location.href = child.link;
+                              }
+                            }}
                             role="menuitem"
+                            sx={{
+                              '&&': {
+                                minHeight: '32px',
+                                height: '32px',
+                              },
+                              justifyContent: 'flex-start', // <--- Forces flexbox to align left
+                              textAlign: 'left',           // <--- Forces text to align left
+                              p: 0,
+                              pl: 2,
+                            }}
                           >
-                            {child.id}
+                            <ListItemText primary={child.id}
+                              sx={{ 
+                                m: 0,
+                                '& .MuiTypography-root': { 
+                                  color: 'white', // Apply same text styling to children if desired
+                                  textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)',
+                                  lineHeight: '1.2' 
+                                }
+                              }} />
                           </ListItemButton>
                         </ListItem>
                       ))}
                     </List>
-                  
+                  </AccordionDetails>
                 </Accordion>
               ))}
             </List>
